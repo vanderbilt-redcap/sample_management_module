@@ -23,10 +23,37 @@
   ],
   "project-settings": [
     {
-      "key": "form-display",
-      "name": "Form to Display PDF Download Button",
+      "key": "inven-project",
+      "name": "Project Containing Records Defining Inventory Storage System",
+      "type": "project-list"
+    },
+    {
+      "key": "sample-field",
+      "name": "Field in Inventory Project for Sample ID",
+      "type": "text"
+    },
+    {
+      "key": "can-store",
+      "name": "Field in Inventory Project Indicating That the Defined Inventory Spot Can Store a Sample",
+      "type": "text"
+    },
+    {
+      "key": "storage-list",
+      "name": "Sample Storage Field List",
+      "type": "sub_settings",
       "repeatable": true,
-      "type": "form-list"
+      "sub_settings":[
+        {
+          "key": "assign-field",
+          "name": "Field on This Project To Select Sample Storage Location",
+          "type": "field-list"
+        },
+        {
+          "key": "storage-label",
+          "name": "Display Label for Inventory Storage Location (uses data piping from the Inventor Project)",
+          "type": "text"
+        }
+      ]
     }
   ],
   "log-file": "log.txt",
