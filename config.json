@@ -15,7 +15,8 @@
   },
   "permissions": [
     "redcap_data_entry_form",
-    "redcap_survey_page"
+    "redcap_survey_page",
+    "redcap_save_record"
   ],
   "no-auth-pages": [
   ],
@@ -25,7 +26,7 @@
     {
       "key": "inven-project",
       "name": "Project Containing Records Defining Inventory Storage System",
-      "type": "project-list"
+      "type": "project-id"
     },
     {
       "key": "sample-field",
@@ -50,8 +51,13 @@
         },
         {
           "key": "storage-label",
-          "name": "Display Label for Inventory Storage Location (uses data piping from the Inventor Project)",
+          "name": "Display Label for Inventory Storage Location (uses data piping from the Inventory Project)",
           "type": "text"
+        },
+        {
+          "key": "sample-id",
+          "name": "Field on This Project Storing the Sample ID",
+          "type": "field-list"
         }
       ]
     }
