@@ -27,6 +27,7 @@ class SampleManagementModule extends AbstractExternalModule
         $settings = $this->getModuleSettings($project_id);
         $currentProject = new \Project($project_id);
         $fieldsOnForm = array_keys($currentProject->forms[$instrument]['fields']);
+        //TODO JSON-ARRAY formatting?
         $currentData = json_decode(\REDCap::getData(
             array(
                 'return_format' => 'json', 'fields' => $settings[self::ASSIGN_FIELD], 'project_id' => $project_id, 'events' => array($event_id),

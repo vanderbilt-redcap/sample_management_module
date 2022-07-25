@@ -11,7 +11,15 @@
   ],
   "framework-version": 4,
   "links": {
-
+    "project": [
+      {
+        "name": "Inventory Interface",
+        "key": "sampleinterfacelink",
+        "icon": "fa-receipt",
+        "url": "interface/index.php",
+        "show-header-and-footer": false
+      }
+    ]
   },
   "permissions": [
     "redcap_data_entry_form",
