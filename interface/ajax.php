@@ -39,24 +39,6 @@ if ($project_id != "" && is_numeric($project_id)) {
         $availableSlots = array();
         $currentSlots = json_decode($_POST['currentSlots'],true);
 
-        /*$javaScript = "$('#".$fieldReplace."-tr').find('$valueTD').find('input:first').remove();";
-        $dropdownHTML = "<select role='listbox' aria-labelledby class='x-form-text x-form-field' name='$fieldReplace' onchange='doBranching();'><option value></option>";
-        if (!empty($currentValue)) {
-            if (isset($availableSlots[$currentValue['value']])) {
-                $this->removeProjectSetting($currentKey,$project_id);
-            }
-            else {
-                $dropdownHTML .= "<option value='" . $currentValue['value'] . "' selected>" . $currentValue['label'] . "</option>";
-                $javaScript .= "dataForm.append('<input type=\"hidden\" name=\"".$currentValue['value']."\" value=\"".$fieldReplace."\" />');";
-            }
-        }
-        foreach ($availableSlots as $index => $label) {
-            $dropdownHTML .= "<option value='".$index."'>$label</option>";
-            $javaScript .= "dataForm.append('<input type=\"hidden\" name=\"".$index."\" value=\"".$label."\" />');";
-        }
-        $dropdownHTML .= "</select>";
-        $javaScript .= "$('#".$fieldReplace."-tr').find('td.data').html(\"$dropdownHTML\");";*/
-
         $availableSlots = $module->getOpenSlots($settings,$record);
         $slots['options'] = "";
         $slots['inputs'] = "";

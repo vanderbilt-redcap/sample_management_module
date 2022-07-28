@@ -231,7 +231,8 @@ class SampleManagementModule extends AbstractExternalModule
         $fieldList = $this->getFieldList($settings);
 
         $invenProjectID = $settings[self::INVEN_PROJECT];
-        $inventoryData = \Records::getData(
+        //TODO Speed of this versus external module filter logic: external_modules/docs/query-data.md
+        $inventoryData = \REDCap::getData(
             array(
                 'return_format' => 'array', 'fields' => $fieldList, 'records' => array($record), 'project_id' => $invenProjectID,
                 'filterLogic' => "[" . $settings[self::SAMPLE_FIELD] . "] = '' AND [" . $settings[self::STORE_FIELD] . "] = '1'"
