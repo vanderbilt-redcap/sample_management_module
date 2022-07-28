@@ -70,9 +70,7 @@ class SampleManagementModule extends AbstractExternalModule
     function redcap_save_record($project_id, $record, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance = 1) {
         $settings = $this->getModuleSettings($project_id);
         $invenProject = new \Project($settings[self::INVEN_PROJECT]);
-echo "<pre>";
-print_r($_POST);
-echo "</pre>";
+
         foreach ($settings[self::ASSIGN_FIELD] as $index => $assignField) {
             if (!isset($settings[self::SAMPLE_ID][$index])) continue;
             $sampleField = $settings[self::SAMPLE_ID][$index];
@@ -127,7 +125,7 @@ echo "</pre>";
                 }
             }
         }
-        $this->exitAfterHook();
+        //$this->exitAfterHook();
     }
 
     function buildJavascript($project_id,$record,$event_id,$repeat_instance,$instrument,$view = "form") {
