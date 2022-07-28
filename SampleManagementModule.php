@@ -157,15 +157,11 @@ class SampleManagementModule extends AbstractExternalModule
         ),true);
 
         foreach ($settings[self::ASSIGN_CONTAIN] as $assignedContainer) {
-            if (isset($currentData[0][$assignedContainer])) {
-                $currentContainers[$assignedContainer] = $currentData[0][$assignedContainer];
-            }
+            $currentContainers[$assignedContainer] = $currentData[0][$assignedContainer];
         }
         foreach ($settings[self::ASSIGN_FIELD] as $assignedSlot) {
-            if (isset($currentData[0][$assignedSlot])) {
-                $currentSetting = $this->getProjectSetting($assignedSlot . "_" . $record . "_" . $event_id . "_" . $repeat_instance, $project_id);
-                $currentSlots[$assignedSlot] = json_decode($currentSetting,true);
-            }
+            $currentSetting = $this->getProjectSetting($assignedSlot . "_" . $record . "_" . $event_id . "_" . $repeat_instance, $project_id);
+            $currentSlots[$assignedSlot] = json_decode($currentSetting, true);
         }
 
         $ajaxUrl = $this->getUrl('interface/ajax.php');
@@ -209,7 +205,7 @@ class SampleManagementModule extends AbstractExternalModule
                         currentSlots: '".json_encode($currentSlots)."'
                     },
                     type: 'POST'
-                }).done(function (html) { console.log(html);";
+                }).done(function (html) { ";
                     foreach ($currentSlots as $fieldName => $slotSetting) {
                         if (!in_array($fieldName,$fieldsOnForm)) continue;
                         $value = $label = "";
