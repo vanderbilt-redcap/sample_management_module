@@ -9,14 +9,29 @@ use REDCap;
 class SampleManagementModule extends AbstractExternalModule
 {
     const INVEN_PROJECT = "inven-project";
+    const CONTAIN_FIELD = "container-field";
     const SAMPLE_FIELD = "sample-field";
     const STORE_FIELD = "can-store";
+    const ASSIGN_CONTAIN = "assign-contain";
     const ASSIGN_FIELD = "assign-field";
+    const CONTAIN_LABEL = "container-label";
     const STORE_LABEL = "storage-label";
     const SAMPLE_ID = "sample-id";
 
     function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance = 1){
-        $this->replaceFields($project_id,$record,$event_id,$repeat_instance,$instrument);
+        //$this->replaceFields($project_id,$record,$event_id,$repeat_instance,$instrument);
+        $printJava = $this->buildJavascript($project_id,$record,$event_id,$repeat_instance,$instrument);
+        /*echo "<pre>";
+        print_r($containerNames);
+        echo "</pre>";*/
+        echo $printJava;
+
+        echo "<script>
+        $(document).ready(function() {
+            $('#form').append('<div id=\"sample_slots\"></div>');
+            getSampleContainers('".$project_id."','".$record."','".$event_id."','".$repeat_instance."');
+        });
+        </script>";
     }
 
     function redcap_survey_page($project_id, $record, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance = 1){
@@ -44,18 +59,20 @@ class SampleManagementModule extends AbstractExternalModule
 
         $availableSlots = $this->getOpenSlots($settings,$currentValues);
 
-        $javaScript = "<script>$(document).ready(function() { let dataForm = $('#form'); ";
+        /*$javaScript = "<script>$(document).ready(function() { let dataForm = $('#form'); ";
         foreach ($settings[self::ASSIGN_FIELD] as $assignField) {
             $javaScript .= $this->buildJavascript($project_id, $assignField, $assignField."_".$event_id."_".$repeat_instance, $availableSlots, (isset($currentValues[$assignField]) ? $currentValues[$assignField] : ""), $view);
         }
         $javaScript .= "});</script>";
-        echo $javaScript;
+        echo $javaScript;*/
     }
 
     function redcap_save_record($project_id, $record, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance = 1) {
         $settings = $this->getModuleSettings($project_id);
         $invenProject = new \Project($settings[self::INVEN_PROJECT]);
-
+echo "<pre>";
+print_r($_POST);
+echo "</pre>";
         foreach ($settings[self::ASSIGN_FIELD] as $index => $assignField) {
             if (!isset($settings[self::SAMPLE_ID][$index])) continue;
             $sampleField = $settings[self::SAMPLE_ID][$index];
@@ -84,11 +101,11 @@ class SampleManagementModule extends AbstractExternalModule
                     $results = \REDCap::saveData($invenProject->project_id, 'json', json_encode($saveData), 'normal', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false);
 
                     if (empty($results['errors'])) {
-                        $this->setProjectSetting($assignField . "_" . $event_id . "_" . $repeat_instance, json_encode(array('project'=>$invenProject->project_id,'field'=>$destField,'record'=>$destRecord,'event'=>$destEvent,'instance'=>$destInstance,'value' => $_POST[$assignField], 'label' => $_POST[$_POST[$assignField]])));
+                        $this->setProjectSetting($assignField . "_" . $record . "_" . $event_id . "_" . $repeat_instance, json_encode(array('project' => $invenProject->project_id, 'field' => $destField, 'record' => $destRecord, 'event' => $destEvent, 'instance' => $destInstance, 'value' => $_POST[$assignField], 'label' => $_POST[$_POST[$assignField]])));
                     }
                 }
                 else {
-                    $currentStore = json_decode($this->getProjectSetting($assignField."_".$event_id."_".$repeat_instance,$project_id),true);
+                    $currentStore = json_decode($this->getProjectSetting($assignField."_".$record."_".$event_id."_".$repeat_instance,$project_id),true);
                     $storeProject = new \Project($currentStore['project']);
                     $storeForm = $storeProject->metadata[$currentStore['field']]['form_name'];
 
@@ -105,15 +122,15 @@ class SampleManagementModule extends AbstractExternalModule
                     $results = \REDCap::saveData($storeProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false);
 
                     if (empty($results['errors'])) {
-                        $this->removeProjectSetting($assignField . "_" . $event_id . "_" . $repeat_instance, $project_id);
+                        $this->removeProjectSetting($assignField . "_" . $record . "_" . $event_id . "_" . $repeat_instance, $project_id);
                     }
                 }
             }
         }
-        //$this->exitAfterHook();
+        $this->exitAfterHook();
     }
 
-    function buildJavascript($project_id,$fieldReplace,$currentKey,$availableSlots,$currentValue = "",$view = "form") {
+    function buildJavascript($project_id,$record,$event_id,$repeat_instance,$instrument,$view = "form") {
         $javaScript = "";
         if ($view == "survey") {
             $valueTD = "td:nth-child(3)";
@@ -123,38 +140,109 @@ class SampleManagementModule extends AbstractExternalModule
             $valueTD = "td:nth-child(2)";
             $labelTD = "find('td:first').find('td:first')";
         }
-        $javaScript = "$('#".$fieldReplace."-tr').find('$valueTD').find('input:first').remove();";
-        $dropdownHTML = "<select role='listbox' aria-labelledby class='x-form-text x-form-field' name='$fieldReplace' onchange='doBranching();'><option value></option>";
-        if (!empty($currentValue)) {
-            if (isset($availableSlots[$currentValue['value']])) {
-                $this->removeProjectSetting($currentKey,$project_id);
-            }
-            else {
-                $dropdownHTML .= "<option value='" . $currentValue['value'] . "' selected>" . $currentValue['label'] . "</option>";
-                $javaScript .= "dataForm.append('<input type=\"hidden\" name=\"".$currentValue['value']."\" value=\"".$fieldReplace."\" />');";
+
+        $settings = $this->getModuleSettings($project_id);
+        $invenProject = new \Project($settings[self::INVEN_PROJECT]);
+        $currentProject = new \Project($project_id);
+        $fieldsOnForm = array_keys($currentProject->forms[$instrument]['fields']);
+        $fieldList = array();
+        $currentContainers = array();
+        $currentSlots = array();
+
+        $fieldList = array_merge(array_values($settings[self::ASSIGN_CONTAIN]),array_values($settings[self::ASSIGN_FIELD]));
+
+        $currentData = json_decode(\REDCap::getData(
+            array(
+                'return_format' => 'json', 'fields' => $fieldList, 'records' => array($record), 'project_id' => $project_id,
+                'events' => array($event_id)
+            )
+        ),true);
+
+        foreach ($settings[self::ASSIGN_CONTAIN] as $assignedContainer) {
+            if (isset($currentData[0][$assignedContainer])) {
+                $currentContainers[$assignedContainer] = $currentData[0][$assignedContainer];
             }
         }
-        foreach ($availableSlots as $index => $label) {
-            $dropdownHTML .= "<option value='".$index."'>$label</option>";
-            $javaScript .= "dataForm.append('<input type=\"hidden\" name=\"".$index."\" value=\"".$label."\" />');";
+        foreach ($settings[self::ASSIGN_FIELD] as $assignedSlot) {
+            if (isset($currentData[0][$assignedSlot])) {
+                $currentSetting = $this->getProjectSetting($assignedSlot . "_" . $record . "_" . $event_id . "_" . $repeat_instance, $project_id);
+                $currentSlots[$assignedSlot] = json_decode($currentSetting,true);
+            }
         }
-        $dropdownHTML .= "</select>";
-        $javaScript .= "$('#".$fieldReplace."-tr').find('td.data').html(\"$dropdownHTML\");";
+
+        $ajaxUrl = $this->getUrl('interface/ajax.php');
+        $javaScript = "<script>
+        function getSampleContainers(project_id,record,event,instance) {
+            $.ajax({
+                    url: '".$ajaxUrl."',
+                    data: {
+                        project_id: project_id,
+                        record: record,
+                        event_id: event,
+                        repeat_instance: instance,
+                        process: 'contain'
+                    },
+                    type: 'POST'
+                }).done(function (html) {
+                if (html != '') {
+                ";
+        foreach ($currentContainers as $fieldName => $value) {
+            if (!in_array($fieldName,$fieldsOnForm)) continue;
+            $javaScript .= "$('#".$fieldName."-tr').find('".$valueTD."').find('input:first').remove();
+            let containerList = JSON.parse(html);
+            $('#".$fieldName."-tr').find('td.data').html('<select role=\"listbox\" aria-labelledby class=\"x-form-text x-form-field\" name=\"".$fieldName."\" onchange=\"doBranching();updateSampleLocations(this,".$project_id.",".$event_id.",".$repeat_instance.");\"></select>');
+            $('select[name=\"".$fieldName."\"]').append(containerList['options']).val('".$value."').trigger('change');";
+        }
+        $javaScript .= "}
+            });
+        }
+        function updateSampleLocations(container,project_id,event,instance) {
+            let containerRecord = container.value;
+            let slotForm = $('#sample_slots');
+            
+            $.ajax({
+                    url: '".$ajaxUrl."',
+                    data: {
+                        project_id: project_id,
+                        record: containerRecord,
+                        event_id: event,
+                        repeat_instance: instance,
+                        process: 'assign',
+                        currentSlots: '".json_encode($currentSlots)."'
+                    },
+                    type: 'POST'
+                }).done(function (html) { console.log(html);";
+                    foreach ($currentSlots as $fieldName => $slotSetting) {
+                        if (!in_array($fieldName,$fieldsOnForm)) continue;
+                        $value = $label = "";
+                        if (is_array($slotSetting) && !empty($slotSetting)) {
+                            $value = $slotSetting['value'];
+                            $label = $slotSetting['label'];
+                        }
+                        $javaScript .= "$('#".$fieldName."-tr').find('".$valueTD."').find('input:first').remove();
+                        let slotList = JSON.parse(html);
+                        $('#".$fieldName."-tr').find('td.data').html('<select role=\"listbox\" aria-labelledby class=\"x-form-text x-form-field\" name=\"".$fieldName."\" onchange=\"doBranching();\"><option value=\"\"></option>".($label != "" ? "<option value=\"$value\">$label</option>" :"")."</select>');
+                        $('select[name=\"".$fieldName."\"]').append(slotList['options']).val('".$value."').trigger('change');
+                        slotForm.html('').append(slotList['inputs']);";
+                    }
+            $javaScript .= "});
+        }
+        </script>";
+
         return $javaScript;
     }
 
-    function getOpenSlots($settings,$currentValues)
+    function getOpenSlots($settings,$record)
     {
         $fieldList = $this->getFieldList($settings);
 
         $invenProjectID = $settings[self::INVEN_PROJECT];
-        $inventoryData = \REDCap::getData(
+        $inventoryData = \Records::getData(
             array(
-                'return_format' => 'array', 'fields' => $fieldList, 'project_id' => $invenProjectID,
+                'return_format' => 'array', 'fields' => $fieldList, 'records' => array($record), 'project_id' => $invenProjectID,
                 'filterLogic' => "[" . $settings[self::SAMPLE_FIELD] . "] = '' AND [" . $settings[self::STORE_FIELD] . "] = '1'"
             )
         );
-
         $availableSlots = array();
 
         foreach ($inventoryData as $record => $eventData) {
@@ -188,11 +276,14 @@ class SampleManagementModule extends AbstractExternalModule
     function getModuleSettings($project_id) {
         $moduleSettings = array(
             self::INVEN_PROJECT => $this->getProjectSetting(self::INVEN_PROJECT,$project_id),
+            self::CONTAIN_FIELD => $this->getProjectSetting(self::CONTAIN_FIELD,$project_id),
             self::SAMPLE_FIELD => $this->getProjectSetting(self::SAMPLE_FIELD,$project_id),
             self::STORE_FIELD => $this->getProjectSetting(self::STORE_FIELD,$project_id),
             self::ASSIGN_FIELD => $this->getProjectSetting(self::ASSIGN_FIELD,$project_id),
+            self::CONTAIN_LABEL => $this->getProjectSetting(self::CONTAIN_FIELD,$project_id),
             self::STORE_LABEL => $this->getProjectSetting(self::STORE_LABEL,$project_id),
-            self::SAMPLE_ID => $this->getProjectSetting(self::SAMPLE_ID,$project_id)
+            self::SAMPLE_ID => $this->getProjectSetting(self::SAMPLE_ID,$project_id),
+            self::ASSIGN_CONTAIN => $this->getProjectSetting(self::ASSIGN_CONTAIN,$project_id)
         );
 
         return $moduleSettings;

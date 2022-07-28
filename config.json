@@ -37,6 +37,11 @@
       "type": "project-id"
     },
     {
+      "key": "container-field",
+      "name": "Field in Inventory Project With Name of Container",
+      "type": "text"
+    },
+    {
       "key": "sample-field",
       "name": "Field in Inventory Project for Sample ID",
       "type": "text"
@@ -53,9 +58,19 @@
       "repeatable": true,
       "sub_settings":[
         {
+          "key": "assign-contain",
+          "name": "Field on This Project To Select Container",
+          "type": "field-list"
+        },
+        {
           "key": "assign-field",
           "name": "Field on This Project To Select Sample Storage Location",
           "type": "field-list"
+        },
+        {
+          "key": "container-label",
+          "name": "Display Label for Inventory Storage Container (uses data piping from the Inventory Project)",
+          "type": "text"
         },
         {
           "key": "storage-label",
