@@ -86,7 +86,7 @@ class SampleManagementModule extends AbstractExternalModule
                     $destForm = $invenProject->metadata[$destField]['form_name'];
                     $sampleValue = $_POST[$sampleField];
 
-                    $saveData[0] = array($invenProject->table_pk => $destRecord, $destField => $sampleValue);
+                    $saveData[0] = array($invenProject->table_pk => $destRecord, $destField => $sampleValue, $destForm."_complete" => "2");
 
                     if ($invenProject->isRepeatingEvent($destEvent)) {
                         $saveData[0]['redcap_repeat_instrument'] = '';
@@ -107,7 +107,7 @@ class SampleManagementModule extends AbstractExternalModule
                     $storeProject = new \Project($currentStore['project']);
                     $storeForm = $storeProject->metadata[$currentStore['field']]['form_name'];
 
-                    $saveData[0] = array($storeProject->table_pk => $currentStore['record'], $currentStore['field'] => '');
+                    $saveData[0] = array($storeProject->table_pk => $currentStore['record'], $currentStore['field'] => '', $storeForm."_complete" => "0");
 
                     if ($storeProject->isRepeatingEvent($currentStore['event'])) {
                         $saveData[0]['redcap_repeat_instrument'] = '';
