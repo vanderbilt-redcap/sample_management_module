@@ -184,8 +184,7 @@ class SampleManagementModule extends AbstractExternalModule
             if (!in_array($fieldName,$fieldsOnForm)) continue;
             $javaScript .= "$('#".$fieldName."-tr').find('".$valueTD."').find('input:first').remove();
             let containerList = JSON.parse(html);
-            $('#".$fieldName."-tr').find('td.data').html('<select role=\"listbox\" aria-labelledby class=\"x-form-text x-form-field\" name=\"".$fieldName."\" onchange=\"doBranching();updateSampleLocations(this,".$project_id.",".$event_id.",".$repeat_instance.");\"></select>');
-            $('select[name=\"".$fieldName."\"]').append(containerList['options']).val('".$value."').trigger('change');";
+            buildSampleDropdown(containerList,'".$fieldName."','".$value."',".$project_id.",".$event_id.",".$repeat_instance.",'container');";
         }
         $javaScript .= "}
             });
@@ -213,13 +212,26 @@ class SampleManagementModule extends AbstractExternalModule
                             $value = $slotSetting['value'];
                             $label = $slotSetting['label'];
                         }
+
                         $javaScript .= "$('#".$fieldName."-tr').find('".$valueTD."').find('input:first').remove();
-                        let slotList = JSON.parse(html);
-                        $('#".$fieldName."-tr').find('td.data').html('<select role=\"listbox\" aria-labelledby class=\"x-form-text x-form-field\" name=\"".$fieldName."\" onchange=\"doBranching();\"><option value=\"\"></option>".($label != "" ? "<option value=\"$value\">$label</option>" :"")."</select>');
-                        $('select[name=\"".$fieldName."\"]').append(slotList['options']).val('".$value."').trigger('change');
+                        let slotList = JSON.parse(html);";
+                        if ($value != "" && $label != "") {
+                            $javaScript .= "slotList['options'] = '<option value=\"$value\">$label</option>'+slotList['options'];";
+                        }
+
+                        $javaScript .= "buildSampleDropdown(slotList,'".$fieldName."','".$value."',".$project_id.",".$event_id.",".$repeat_instance.",'samples');
                         slotForm.html('').append(slotList['inputs']);";
                     }
             $javaScript .= "});
+        }
+        function buildSampleDropdown(containerList,field,value,project_id,event_id,instance,type) {
+            let onchangeString = \"doBranching();\";
+            if (type == 'container') {
+                onchangeString = onchangeString+'updateSampleLocations(this,'+project_id+','+event_id+','+instance+');';
+            }
+            $('#'+field+'-tr').find('td.data').html('<select role=\"listbox\" aria-labelledby class=\"x-form-text x-form-field\" name=\"'+field+'\" onchange=\"'+onchangeString+'\"></select>');
+            $('select[name=\"'+field+'\"]').append(containerList['options']).val(value).trigger('change');
+            $('select[name=\"'+field+'\"]').select2();
         }
         </script>";
 
