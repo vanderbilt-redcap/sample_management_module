@@ -18,6 +18,13 @@
         "icon": "fa-receipt",
         "url": "interface/index.php",
         "show-header-and-footer": false
+      },
+      {
+        "name": "Receive Samples",
+        "key": "samplereceivelink",
+        "icon": "fa-receipt",
+        "url": "interface/receive_samples.php",
+        "show-header-and-footer": false
       }
     ]
   },
