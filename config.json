@@ -44,6 +44,11 @@
       "type": "project-id"
     },
     {
+      "key": "box-image",
+      "name": "Example Image of Storage Box Orientation",
+      "type": "file"
+    },
+    {
       "key": "container-field",
       "name": "Field in Inventory Project With Name of Container",
       "type": "text"
@@ -57,6 +62,46 @@
       "key": "can-store",
       "name": "Field in Inventory Project Indicating That the Defined Inventory Spot Can Store a Sample",
       "type": "text"
+    },
+    {
+      "key": "lookup-field",
+      "name": "Field to Query Sample Shipment",
+      "type": "field-list"
+    },
+    {
+      "key": "sample-type",
+      "name": "Field Storing Sample Type",
+      "type": "field-list"
+    },
+    {
+      "key": "shipped-by",
+      "name": "Field Storing Person Who Sent Package",
+      "type": "field-list"
+    },
+    {
+      "key": "ship-date",
+      "name": "Field Storing Date of Shipping",
+      "type": "field-list"
+    },
+    {
+      "key": "fridge-field",
+      "name": "Field for Storage Fridge",
+      "type": "field-list"
+    },
+    {
+      "key": "slot-field",
+      "name": "Field for Sample Slot",
+      "type": "field-list"
+    },
+    {
+      "key": "discrepency-field",
+      "name": "Field for Sample Discrepency",
+      "type": "field-list"
+    },
+    {
+      "key": "discrepency-other",
+      "name": "Field for Other Sample Discrepency Options",
+      "type": "field-list"
     },
     {
       "key": "storage-list",

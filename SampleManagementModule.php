@@ -309,4 +309,22 @@ class SampleManagementModule extends AbstractExternalModule
         }
         return $fieldList;
     }
+
+    function getSampleData($project_id,$fieldFilters = array()) {
+        $returnArray = array();
+        if (!is_numeric($project_id) || empty($fieldFilters)) return $returnArray;
+
+        $filterString = "";
+        foreach ($fieldFilters as $fieldName => $value) {
+            $fieldFilters .= ($filterString != "" ? " AND " : "")."[".$fieldName."] = '$value'";
+        }
+
+        $returnArray = \REDCap::getData(
+            array(
+                'return_format' => 'array', 'project_id' => $project_id, 'filterLogic' => $filterString
+            )
+        );
+
+        return $returnArray;
+    }
 }
