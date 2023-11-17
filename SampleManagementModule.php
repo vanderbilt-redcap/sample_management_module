@@ -17,8 +17,17 @@ class SampleManagementModule extends AbstractExternalModule
     const CONTAIN_LABEL = "container-label";
     const STORE_LABEL = "storage-label";
     const SAMPLE_ID = "sample-id";
+    const LOOKUP_FIELD = "lookup-field";
+    const COLLECT_EVENT = "collect-event";
+    const SAMPLE_TYPE = "sample-type";
+    const SHIPPED_BY = "shipped-by";
+    const SHIP_DATE = "ship-date";
+    const DISCREP_FIELD = "discrepancy-field";
+    const DISCREP_OTHER = "discrepancy-other";
 
     function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance = 1){
+        $data = REDCap::getData($project_id, 'array');
+
         //$this->replaceFields($project_id,$record,$event_id,$repeat_instance,$instrument);
         $printJava = $this->buildJavascript($project_id,$record,$event_id,$repeat_instance,$instrument);
         /*echo "<pre>";
@@ -179,11 +188,11 @@ class SampleManagementModule extends AbstractExternalModule
                     type: 'POST'
                 }).done(function (html) {
                 if (html != '') {
+                    let containerList = JSON.parse(html);
                 ";
         foreach ($currentContainers as $fieldName => $value) {
             if (!in_array($fieldName,$fieldsOnForm)) continue;
             $javaScript .= "$('#".$fieldName."-tr').find('".$valueTD."').find('input:first').remove();
-            let containerList = JSON.parse(html);
             buildSampleDropdown(containerList,'".$fieldName."','".$value."',".$project_id.",".$event_id.",".$repeat_instance.",'container');";
         }
         $javaScript .= "}
@@ -238,15 +247,16 @@ class SampleManagementModule extends AbstractExternalModule
         return $javaScript;
     }
 
-    function getOpenSlots($settings,$record)
+    function getOpenSlots($settings,$invenRecords = array())
     {
         $fieldList = $this->getFieldList($settings);
 
         $invenProjectID = $settings[self::INVEN_PROJECT];
         //TODO Speed of this versus external module filter logic: external_modules/docs/query-data.md
-        $inventoryData = \REDCap::getData(
+
+        $inventoryData = \Records::getData(
             array(
-                'return_format' => 'array', 'fields' => $fieldList, 'records' => array($record), 'project_id' => $invenProjectID,
+                'return_format' => 'array', 'fields' => $fieldList, 'records' => $invenRecords, 'project_id' => $invenProjectID,
                 'filterLogic' => "[" . $settings[self::SAMPLE_FIELD] . "] = '' AND [" . $settings[self::STORE_FIELD] . "] = '1'"
             )
         );
@@ -280,17 +290,25 @@ class SampleManagementModule extends AbstractExternalModule
         return $availableSlots;
     }
 
-    function getModuleSettings($project_id) {
+    function getModuleSettings($project_id)
+    {
         $moduleSettings = array(
-            self::INVEN_PROJECT => $this->getProjectSetting(self::INVEN_PROJECT,$project_id),
-            self::CONTAIN_FIELD => $this->getProjectSetting(self::CONTAIN_FIELD,$project_id),
-            self::SAMPLE_FIELD => $this->getProjectSetting(self::SAMPLE_FIELD,$project_id),
-            self::STORE_FIELD => $this->getProjectSetting(self::STORE_FIELD,$project_id),
-            self::ASSIGN_FIELD => $this->getProjectSetting(self::ASSIGN_FIELD,$project_id),
-            self::CONTAIN_LABEL => $this->getProjectSetting(self::CONTAIN_FIELD,$project_id),
-            self::STORE_LABEL => $this->getProjectSetting(self::STORE_LABEL,$project_id),
-            self::SAMPLE_ID => $this->getProjectSetting(self::SAMPLE_ID,$project_id),
-            self::ASSIGN_CONTAIN => $this->getProjectSetting(self::ASSIGN_CONTAIN,$project_id)
+            self::INVEN_PROJECT => $this->getProjectSetting(self::INVEN_PROJECT, $project_id),
+            self::CONTAIN_FIELD => $this->getProjectSetting(self::CONTAIN_FIELD, $project_id),
+            self::SAMPLE_FIELD => $this->getProjectSetting(self::SAMPLE_FIELD, $project_id),
+            self::STORE_FIELD => $this->getProjectSetting(self::STORE_FIELD, $project_id),
+            self::ASSIGN_FIELD => $this->getProjectSetting(self::ASSIGN_FIELD, $project_id),
+            self::CONTAIN_LABEL => $this->getProjectSetting(self::CONTAIN_FIELD, $project_id),
+            self::STORE_LABEL => $this->getProjectSetting(self::STORE_LABEL, $project_id),
+            self::SAMPLE_ID => $this->getProjectSetting(self::SAMPLE_ID, $project_id),
+            self::ASSIGN_CONTAIN => $this->getProjectSetting(self::ASSIGN_CONTAIN, $project_id),
+            self::LOOKUP_FIELD => $this->getProjectSetting(self::LOOKUP_FIELD, $project_id),
+            self::SAMPLE_TYPE => $this->getProjectSetting(self::SAMPLE_TYPE, $project_id),
+            self::SHIPPED_BY => $this->getProjectSetting(self::SHIPPED_BY, $project_id),
+            self::SHIP_DATE => $this->getProjectSetting(self::SHIP_DATE, $project_id),
+            self::DISCREP_FIELD => $this->getProjectSetting(self::DISCREP_FIELD, $project_id),
+            self::DISCREP_OTHER => $this->getProjectSetting(self::DISCREP_OTHER, $project_id),
+            self::COLLECT_EVENT => $this->getProjectSetting(self::COLLECT_EVENT,$project_id)
         );
 
         return $moduleSettings;
@@ -310,21 +328,52 @@ class SampleManagementModule extends AbstractExternalModule
         return $fieldList;
     }
 
-    function getSampleData($project_id,$fieldFilters = array()) {
+    function getShippingData($project_id,$fieldFilters = array()) {
         $returnArray = array();
+        $project = new \Project($project_id);
+
+        //TODO Just pass project object into this function instead of the PID?
         if (!is_numeric($project_id) || empty($fieldFilters)) return $returnArray;
 
+        $moduleSettings = $this->getModuleSettings($project_id);
+        $fieldList = array_merge($moduleSettings[self::DISCREP_FIELD],$moduleSettings[self::DISCREP_OTHER],$moduleSettings[self::SAMPLE_ID],$moduleSettings[self::SAMPLE_TYPE],
+            $moduleSettings[self::ASSIGN_CONTAIN],$moduleSettings[self::ASSIGN_FIELD],$moduleSettings[self::LOOKUP_FIELD],
+            $moduleSettings[self::SHIPPED_BY],$moduleSettings[self::SHIP_DATE],$moduleSettings[self::COLLECT_EVENT]);
+
         $filterString = "";
-        foreach ($fieldFilters as $fieldName => $value) {
-            $fieldFilters .= ($filterString != "" ? " AND " : "")."[".$fieldName."] = '$value'";
+        foreach ($fieldFilters['fields'] as $fieldName) {
+            $filterString .= ($filterString != "" ? " OR " : "")."[".$fieldName."] = '".$fieldFilters['value']."'";
         }
 
-        $returnArray = \REDCap::getData(
+        $result = json_decode(\REDCap::getData(
             array(
-                'return_format' => 'array', 'project_id' => $project_id, 'filterLogic' => $filterString
+                'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => $filterString, 'fields' => $fieldList,
+                'exportAsLabels' => true
             )
-        );
+        ),true);
 
+        if (empty($result['errors'])) {
+            foreach ($result as $record => $rData) {
+                foreach ($moduleSettings[self::LOOKUP_FIELD] as $index => $lField) {
+                    if (isset($rData[$lField])) {
+                        $returnArray[$record] = array(
+                            $project->table_pk => $rData[$project->table_pk],
+                            self::LOOKUP_FIELD => $rData[$lField],
+                            self::SHIP_DATE => $rData[$moduleSettings[self::SHIP_DATE][$index]],
+                            self::SHIPPED_BY => $rData[$moduleSettings[self::SHIPPED_BY][$index]],
+                            self::ASSIGN_FIELD => $rData[$moduleSettings[self::ASSIGN_FIELD][$index]],
+                            self::ASSIGN_CONTAIN => $rData[$moduleSettings[self::ASSIGN_CONTAIN][$index]],
+                            self::DISCREP_OTHER => $rData[$moduleSettings[self::DISCREP_OTHER][$index]],
+                            self::DISCREP_FIELD => $rData[$moduleSettings[self::DISCREP_FIELD][$index]],
+                            self::SAMPLE_ID => $rData[$moduleSettings[self::SAMPLE_ID][$index]],
+                            self::SAMPLE_TYPE => $rData[$moduleSettings[self::SAMPLE_TYPE][$index]],
+                            self::COLLECT_EVENT => $rData[$moduleSettings[self::COLLECT_EVENT][$index]]
+                        );
+                    }
+                }
+            }
+            return $returnArray;
+        }
         return $returnArray;
     }
 }

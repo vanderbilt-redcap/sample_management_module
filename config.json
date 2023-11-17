@@ -64,46 +64,6 @@
       "type": "text"
     },
     {
-      "key": "lookup-field",
-      "name": "Field to Query Sample Shipment",
-      "type": "field-list"
-    },
-    {
-      "key": "sample-type",
-      "name": "Field Storing Sample Type",
-      "type": "field-list"
-    },
-    {
-      "key": "shipped-by",
-      "name": "Field Storing Person Who Sent Package",
-      "type": "field-list"
-    },
-    {
-      "key": "ship-date",
-      "name": "Field Storing Date of Shipping",
-      "type": "field-list"
-    },
-    {
-      "key": "fridge-field",
-      "name": "Field for Storage Fridge",
-      "type": "field-list"
-    },
-    {
-      "key": "slot-field",
-      "name": "Field for Sample Slot",
-      "type": "field-list"
-    },
-    {
-      "key": "discrepency-field",
-      "name": "Field for Sample Discrepency",
-      "type": "field-list"
-    },
-    {
-      "key": "discrepency-other",
-      "name": "Field for Other Sample Discrepency Options",
-      "type": "field-list"
-    },
-    {
       "key": "storage-list",
       "name": "Sample Storage Field List",
       "type": "sub_settings",
@@ -132,6 +92,41 @@
         {
           "key": "sample-id",
           "name": "Field on This Project Storing the Sample ID",
+          "type": "field-list"
+        },
+        {
+          "key": "lookup-field",
+          "name": "Field to Query Sample Shipment",
+          "type": "field-list"
+        },
+        {
+          "key": "collect-event",
+          "name": "Field Storing Time of Sample Collection",
+          "type": "field-list"
+        },
+        {
+          "key": "sample-type",
+          "name": "Field Storing Sample Type",
+          "type": "field-list"
+        },
+        {
+          "key": "shipped-by",
+          "name": "Field Storing Person Who Sent Package",
+          "type": "field-list"
+        },
+        {
+          "key": "ship-date",
+          "name": "Field Storing Date of Shipping",
+          "type": "field-list"
+        },
+        {
+          "key": "discrepancy-field",
+          "name": "Field for Sample Discrepancy",
+          "type": "field-list"
+        },
+        {
+          "key": "discrepancy-other",
+          "name": "Field for Other Sample Discrepancy Options",
           "type": "field-list"
         }
       ]
