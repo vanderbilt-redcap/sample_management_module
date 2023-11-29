@@ -66,8 +66,6 @@ class SampleManagementModule extends AbstractExternalModule
             $currentValues[$assignField] = json_decode($savedSetting,true);
         }
 
-        $availableSlots = $this->getOpenSlots($settings,$currentValues);
-
         /*$javaScript = "<script>$(document).ready(function() { let dataForm = $('#form'); ";
         foreach ($settings[self::ASSIGN_FIELD] as $assignField) {
             $javaScript .= $this->buildJavascript($project_id, $assignField, $assignField."_".$event_id."_".$repeat_instance, $availableSlots, (isset($currentValues[$assignField]) ? $currentValues[$assignField] : ""), $view);
@@ -183,7 +181,7 @@ class SampleManagementModule extends AbstractExternalModule
                         record: record,
                         event_id: event,
                         repeat_instance: instance,
-                        process: 'contain'
+                        process: 'get_container_options'
                     },
                     type: 'POST'
                 }).done(function (html) {
@@ -201,7 +199,6 @@ class SampleManagementModule extends AbstractExternalModule
         function updateSampleLocations(container,project_id,event,instance) {
             let containerRecord = container.value;
             let slotForm = $('#sample_slots');
-            
             $.ajax({
                     url: '".$ajaxUrl."',
                     data: {
@@ -209,7 +206,7 @@ class SampleManagementModule extends AbstractExternalModule
                         record: containerRecord,
                         event_id: event,
                         repeat_instance: instance,
-                        process: 'assign',
+                        process: 'get_slot_options',
                         currentSlots: '".json_encode($currentSlots)."'
                     },
                     type: 'POST'
@@ -235,6 +232,7 @@ class SampleManagementModule extends AbstractExternalModule
         }
         function buildSampleDropdown(containerList,field,value,project_id,event_id,instance,type) {
             let onchangeString = \"doBranching();\";
+            console.log(containerList);
             if (type == 'container') {
                 onchangeString = onchangeString+'updateSampleLocations(this,'+project_id+','+event_id+','+instance+');';
             }
@@ -247,20 +245,47 @@ class SampleManagementModule extends AbstractExternalModule
         return $javaScript;
     }
 
-    function getOpenSlots($settings,$invenRecords = array())
+    function getContainerList() {
+        $containers = array();
+        $settings = $this->getModuleSettings();
+        $containField = $settings[self::CONTAIN_FIELD];
+        $invenProjectID = $settings[self::INVEN_PROJECT];
+
+        $sql = "SELECT DISTINCT(`value`),project_id,record
+						FROM redcap_data
+						WHERE project_id = ?
+                        AND field_name = ?
+                        ORDER BY `value` ASC";
+
+        $result = $this->query($sql, [$invenProjectID, $containField]);
+
+        while ($row = $result->fetch_assoc()) {
+            $containers[$row['record']] = $row['value'];
+        }
+        return $containers;
+    }
+
+    function getContainerSlots($invenRecords = array(),$openOnly = false)
     {
+        $availableSlots = array();
+        if (empty($invenRecords)) return $availableSlots;
+
+        $settings = $this->getModuleSettings();
         $fieldList = $this->getFieldList($settings);
 
         $invenProjectID = $settings[self::INVEN_PROJECT];
         //TODO Speed of this versus external module filter logic: external_modules/docs/query-data.md
+        $filterString = "[" . $settings[self::STORE_FIELD] . "] = '1'";
+        if ($openOnly) {
+            $filterString .= " AND [" . $settings[self::SAMPLE_FIELD] . "] = ''";
+        }
 
         $inventoryData = \Records::getData(
             array(
                 'return_format' => 'array', 'fields' => $fieldList, 'records' => $invenRecords, 'project_id' => $invenProjectID,
-                'filterLogic' => "[" . $settings[self::SAMPLE_FIELD] . "] = '' AND [" . $settings[self::STORE_FIELD] . "] = '1'"
+                'filterLogic' => $filterString
             )
         );
-        $availableSlots = array();
 
         foreach ($inventoryData as $record => $eventData) {
             $cleanRecord = htmlentities($record);
@@ -271,7 +296,11 @@ class SampleManagementModule extends AbstractExternalModule
                             foreach ($instrumentData as $instance => $instanceData) {
                                 foreach ($settings[self::STORE_LABEL] as $index => $labelString) {
                                     $slotLabel = \Piping::replaceVariablesInLabel($labelString, $record, $subEventID, $instance, $inventoryData, false, $invenProjectID, false);
-                                    $availableSlots[$index."_".$invenProjectID."_".$cleanRecord."_".$subEventID."_".$instance] = $slotLabel;
+                                    $storedSample = $instanceData[$settings[self::SAMPLE_FIELD]];
+                                    //$availableSlots[$index."_".$invenProjectID."_".$cleanRecord."_".$subEventID."_".$instance] = $slotLabel;
+                                    $availableSlots[] = array(
+                                        'index'=>$index,'project_id'=>$invenProjectID,'record'=>$cleanRecord,'event'=>$subEventID,'instance'=>$instance,'slot'=>$slotLabel,'sample'=>$storedSample
+                                    );
                                 }
                             }
                         }
@@ -281,17 +310,24 @@ class SampleManagementModule extends AbstractExternalModule
                     if (!isset($eventData['repeat_instances'])) {
                         foreach ($settings[self::STORE_LABEL] as $index => $labelString) {
                             $slotLabel = \Piping::replaceVariablesInLabel($labelString, $record, $eventID, 1, $inventoryData, false, $invenProjectID, false);
-                            $availableSlots[$index."_".$invenProjectID."_".$cleanRecord."_".$eventID."_1"] = $slotLabel;
+                            $storedSample = $recordData[$settings[self::SAMPLE_FIELD]];
+                            //$availableSlots[$index."_".$invenProjectID."_".$cleanRecord."_".$eventID."_1"] = $slotLabel;
+                            $availableSlots[] = array(
+                                'index'=>$index,'project_id'=>$invenProjectID,'record'=>$cleanRecord,'event'=>$eventID,'instance'=>1,'slot'=>$slotLabel,'sample'=>$storedSample
+                            );
                         }
                     }
                 }
             }
         }
+
         return $availableSlots;
     }
 
-    function getModuleSettings($project_id)
+    function getModuleSettings($project_id = "")
     {
+        if (!is_numeric($project_id)) $project_id = $this->getProjectId();
+
         $moduleSettings = array(
             self::INVEN_PROJECT => $this->getProjectSetting(self::INVEN_PROJECT, $project_id),
             self::CONTAIN_FIELD => $this->getProjectSetting(self::CONTAIN_FIELD, $project_id),
@@ -330,11 +366,11 @@ class SampleManagementModule extends AbstractExternalModule
 
     function getShippingData($project_id,$fieldFilters = array()) {
         $returnArray = array();
-        $project = new \Project($project_id);
 
         //TODO Just pass project object into this function instead of the PID?
         if (!is_numeric($project_id) || empty($fieldFilters)) return $returnArray;
 
+        $project = new \Project($project_id);
         $moduleSettings = $this->getModuleSettings($project_id);
         $fieldList = array_merge($moduleSettings[self::DISCREP_FIELD],$moduleSettings[self::DISCREP_OTHER],$moduleSettings[self::SAMPLE_ID],$moduleSettings[self::SAMPLE_TYPE],
             $moduleSettings[self::ASSIGN_CONTAIN],$moduleSettings[self::ASSIGN_FIELD],$moduleSettings[self::LOOKUP_FIELD],
@@ -375,5 +411,22 @@ class SampleManagementModule extends AbstractExternalModule
             return $returnArray;
         }
         return $returnArray;
+    }
+
+    function getRecordByField($project_id,$field,$value) {
+        $returnValue = "";
+
+        if (!is_numeric($project_id) || $value == "" || $field == "") return $returnValue;
+
+        $project = new \Project($project_id);
+        $recordData = REDCap::getData(array(
+            'return_format' => 'array', 'project_id' => $project_id, 'filterLogic' => "[$field] = '$value'", 'fields' => $project->table_pk,
+            'exportAsLabels' => true
+        ));
+        foreach ($recordData as $recordID => $data) {
+            $returnValue = $recordID;
+        }
+
+        return $returnValue;
     }
 }
