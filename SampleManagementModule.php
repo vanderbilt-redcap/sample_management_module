@@ -24,6 +24,12 @@ class SampleManagementModule extends AbstractExternalModule
     const SHIP_DATE = "ship-date";
     const DISCREP_FIELD = "discrepancy-field";
     const DISCREP_OTHER = "discrepancy-other";
+    const PARTICIPANT_ID = "participant-id";
+    const PLANNED_COLLECT = "planned-collect";
+    const ACTUAL_COLLECT = "actual-collect";
+    const COLLECT_DATE = "collect-date";
+    const PLANNED_TYPE = "planned-type";
+    const ACTUAL_TYPE = "actual-type";
 
     function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance = 1){
         $data = REDCap::getData($project_id, 'array');
@@ -344,7 +350,13 @@ class SampleManagementModule extends AbstractExternalModule
             self::SHIP_DATE => $this->getProjectSetting(self::SHIP_DATE, $project_id),
             self::DISCREP_FIELD => $this->getProjectSetting(self::DISCREP_FIELD, $project_id),
             self::DISCREP_OTHER => $this->getProjectSetting(self::DISCREP_OTHER, $project_id),
-            self::COLLECT_EVENT => $this->getProjectSetting(self::COLLECT_EVENT,$project_id)
+            self::COLLECT_EVENT => $this->getProjectSetting(self::COLLECT_EVENT,$project_id),
+            self::PARTICIPANT_ID => $this->getProjectSetting(self::PARTICIPANT_ID,$project_id),
+            self::PLANNED_COLLECT => $this->getProjectSetting(self::PLANNED_COLLECT,$project_id),
+            self::ACTUAL_COLLECT => $this->getProjectSetting(self::ACTUAL_COLLECT,$project_id),
+            self::COLLECT_DATE => $this->getProjectSetting(self::COLLECT_DATE,$project_id),
+            self::PLANNED_TYPE => $this->getProjectSetting(self::PLANNED_TYPE,$project_id),
+            self::ACTUAL_TYPE => $this->getProjectSetting(self::ACTUAL_TYPE,$project_id)
         );
 
         return $moduleSettings;

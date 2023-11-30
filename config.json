@@ -64,21 +64,41 @@
       "type": "text"
     },
     {
+      "key": "participant-id",
+      "name": "Field Storing Participant Sample Was Drawn From",
+      "type": "field-list"
+    },
+    {
+      "key": "planned-collect",
+      "name": "Field Storing Planned Collection Event for Sample",
+      "type": "field-list"
+    },
+    {
+      "key": "actual-collect",
+      "name": "Field Storing Real Collection Event for Sample",
+      "type": "field-list"
+    },
+    {
+      "key": "collect-date",
+      "name": "Field Storing Real Date of Sample Collection",
+      "type": "field-list"
+    },
+    {
+      "key": "planned-type",
+      "name": "Field Storing Planned Type of Sample",
+      "type": "field-list"
+    },
+    {
+      "key": "actual-type",
+      "name": "Field Storing Actual Type of Sample",
+      "type": "field-list"
+    },
+    {
       "key": "storage-list",
       "name": "Sample Storage Field List",
       "type": "sub_settings",
       "repeatable": true,
       "sub_settings":[
-        {
-          "key": "assign-contain",
-          "name": "Field on This Project To Select Container",
-          "type": "field-list"
-        },
-        {
-          "key": "assign-field",
-          "name": "Field on This Project To Select Sample Storage Location",
-          "type": "field-list"
-        },
         {
           "key": "container-label",
           "name": "Display Label for Inventory Storage Container (uses data piping from the Inventory Project)",
@@ -127,6 +147,16 @@
         {
           "key": "discrepancy-other",
           "name": "Field for Other Sample Discrepancy Options",
+          "type": "field-list"
+        },
+        {
+          "key": "assign-contain",
+          "name": "Field on This Project To Select Container",
+          "type": "field-list"
+        },
+        {
+          "key": "assign-field",
+          "name": "Field on This Project To Select Sample Storage Location",
           "type": "field-list"
         }
       ]

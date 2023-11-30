@@ -7,10 +7,7 @@ $module = new \Vanderbilt\SampleManagementModule\SampleManagementModule($project
 $shippingData = array();
 $trackingNum = "";
 $ajaxUrl = $module->getUrl('interface/ajax.php');
-$data = json_decode(Records::getData($project->project_id,'json',array("NATN_1_he-1_coll-1_samp-1")),true);
-echo "<pre>";
-print_r($data);
-echo "</pre>";
+
 ?>
 
 <h2>Receiving Samples</h2>
@@ -91,6 +88,7 @@ echo "</pre>";
         }).done(function (html) {
             let sampleList = JSON.parse(html);
             let sampleHTML = "<table><tr><th>Sample Barcode</th><th>Sample Status</th><th>Location</th></tr>";
+            let sampleData = "";
             for (const key in sampleList) {
                 const value = sampleList[key]['sample_id'];
                 sampleHTML += "<tr id='sample_row_"+key+"'><td>"+value+"</td><td></td><td></td></tr>";
@@ -149,7 +147,7 @@ echo "</pre>";
                     tableHTML += "<div id='sample_slot_"+slotID+"'>ID: "+slotLabel+"</div>";
                 }
                 else {
-                    tableHTML += "<div id='sample_slot_"+slotID+"'><span class='scan_barcode'><label for='barcode_slot_"+slotID+"'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_"+slotID+"' onchange='saveSample(this.value,\"sample_slot_"+slotID+"\",\"sample_issue_\");loadSample(this.value,\"sample_slot_"+slotID+"\");' /></span></div>";
+                    tableHTML += "<div id='sample_slot_"+slotID+"'><span class='scan_barcode'><label for='barcode_slot_"+slotID+"'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_"+slotID+"' onchange='saveSample(this.value,\""+slotID+"\",\"sample_issue_\");loadSample(this.value,\""+slotID+"\");' /></span></div>";
                 }
                 tableHTML += "</td>";
                 previousRow = currentRow;
@@ -190,18 +188,45 @@ echo "</pre>";
         $('#'+table_id).append(tableHTML);*/
     }
 
-    function loadSample(barcode,parent_id) {
+    function loadSample(barcode,slot_id) {
+        let parent_id = "sample_slot_"+slot_id;
         $('#sample_info_container').css('display','table-cell');
-        let sampleHTML = generateSampleInfo(barcode,parent_id);
-        $('#sample_info').html(sampleHTML);
+        let sampleHTML = generateSampleInfo(barcode,slot_id);
+        if (sampleHTML != "") {
+            $('#sample_info').html(sampleHTML);
+        }
     }
 
-    function generateSampleInfo(barcode,parent_id) {
-        return "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr><tr><td>Sample Type</td><td>Blood</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr><tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+barcode+"\",\""+parent_id+"\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr></table>";
+    function generateSampleInfo(barcode,slot_id) {
+        let parent_id = "sample_slot_"+slot_id;
+        let sampleTable = "";
+        $.ajax({
+            url: '<?php echo $ajaxUrl; ?>',
+            data: {
+                project_id: <?php echo $project->project_id; ?>,
+                record: barcode,
+                process: 'load_sample'
+            },
+            type: 'POST'
+        }).done(function (html) {
+            if (html != "") {
+                let sampleTable = "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr>";
+                let sampleData = JSON.parse(html);
+                sampleTable += "<tr><td>Participant ID</td><td>" + sampleData['participant_id'] + "</td></tr>" +
+                    "<tr><td>Collection Date</td><td>" + sampleData['collect_date'] + "</td></tr>" +
+                    "<tr><td>Expected Type<br/>" + sampleData['planned_type'] + "</td><td>Actual Type<br/>" + sampleData['actual_type'] + "</td></tr>" +
+                    "<tr><td>Expected Collect Event<br/>" + sampleData['planned_collect'] + "</td><td>Actual Collect Event<br/>" + sampleData['actual_collect'] + "</td></tr>";
+                sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+barcode+"\",\""+parent_id+"\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr></table>";
+                $('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']);
+            }
+        });
+        return sampleTable;
+        //return "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr><tr><td>Sample Type</td><td>Blood</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr><tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+barcode+"\",\""+parent_id+"\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr></table>";
     }
 
-    function saveSample(barcode,sample_cell_id,issue_id_prefix) {
+    function saveSample(barcode,slot_id,issue_id_prefix) {
         let discrepData = [];
+        let sample_cell_id = "sample_slot_"+slot_id;
         $("input[id^='"+issue_id_prefix+"']").each(function() {
            if ($(this).prop("checked")) {
                discrepData.push($(this).val());
@@ -220,7 +245,7 @@ echo "</pre>";
             },
             type: 'POST'
         }).done(function (html) {
-            let sampleData = JSON.parse(html);
+
         });
     }
 </script>

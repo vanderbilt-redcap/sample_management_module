@@ -62,16 +62,38 @@ if ($project_id != "" && is_numeric($project_id)) {
             $sampleData = json_decode(\REDCap::getData(
                 array(
                     'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[".$trackField."] = '".$trackNum."'",
-                    'fields'=>array($project->table_pk,$settings[$module::SAMPLE_ID][0],$settings[$module::SAMPLE_FIELD],$trackField), 'exportAsLabels' => true
+                    'fields'=>array($project->table_pk,$settings[$module::SAMPLE_ID][0],$settings[$module::SAMPLE_FIELD],$trackField,$settings[$module::COLLECT_DATE],$settings[$module::PLANNED_TYPE],$settings[$module::ACTUAL_TYPE],$settings[$module::PLANNED_COLLECT],$settings[$module::ACTUAL_COLLECT],$settings[$module::PARTICIPANT_ID]), 'exportAsLabels' => true
                 )
             ),true);
 
             if (empty($sampleData['errors']) && is_array($sampleData)) {
-                foreach ($sampleData as $record => $sData) {
-                    $sampleList[$sData[$project->table_pk]] = array('sample_id'=>$sData[$settings[$module::SAMPLE_ID][0]]);
+                foreach ($sampleData as $index => $sData) {
+                    $sampleList[$sData[$project->table_pk]] = array(
+                        'sample_id'=>$sData[$settings[$module::SAMPLE_ID][0]],"collect_date" => $sData[$settings[$module::COLLECT_DATE]],
+                        'participant_id'=>$sData[$settings[$module::PARTICIPANT_ID]],'planned_collect'=>$sData[$settings[$module::PLANNED_COLLECT]],
+                        'actual_collect'=>$sData[$settings[$module::ACTUAL_COLLECT]],'planned_type'=>$sData[$settings[$module::PLANNED_TYPE]],
+                        'actual_type'=>$sData[$settings[$module::ACTUAL_TYPE]]
+                    );
                 }
             }
         }
+
+        $tableHTML = json_encode($sampleList);
+    }
+    elseif ($process == "load_sample") {
+        $sampleData = json_decode(\REDCap::getData(
+            array(
+                'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[" . $settings[$module::SAMPLE_ID] . "] = '" . $record . "'",
+                'fields' => array($project->table_pk, $settings[$module::SAMPLE_ID], $settings[$module::SAMPLE_FIELD], $settings[$module::COLLECT_DATE], $settings[$module::PLANNED_TYPE], $settings[$module::ACTUAL_TYPE], $settings[$module::PLANNED_COLLECT], $settings[$module::ACTUAL_COLLECT], $settings[$module::PARTICIPANT_ID]), 'exportAsLabels' => true
+            )
+        ), true);
+        $sData = $sampleData[0];
+        $sampleList[$sData[$project->table_pk]] = array(
+            'sample_id'=>$sData[$settings[$module::SAMPLE_ID][0]],"collect_date" => $sData[$settings[$module::COLLECT_DATE]],
+            'participant_id'=>$sData[$settings[$module::PARTICIPANT_ID]],'planned_collect'=>$sData[$settings[$module::PLANNED_COLLECT]],
+            'actual_collect'=>$sData[$settings[$module::ACTUAL_COLLECT]],'planned_type'=>$sData[$settings[$module::PLANNED_TYPE]],
+            'actual_type'=>$sData[$settings[$module::ACTUAL_TYPE]]
+        );
 
         $tableHTML = json_encode($sampleList);
     }
