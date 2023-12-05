@@ -13,11 +13,8 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
 <h2>Receiving Samples</h2>
 <span>
     <label for="tracking_num">Tracking Number: </label><input type="text" name="tracking_num" id="tracking_num" value="<?php echo ($trackingNum ?? ""); ?>">
-    <input type="button" value="Load Samples" name="load_samples" onclick="loadShippingSamples('tracking_num','sample_table');loadAllContainers('container_select');">
+    <input type="button" value="Load Samples" name="load_samples" onclick="loadShippingInfo('tracking_num','package_info');loadShippingSamples('tracking_num','sample_table');loadAllContainers('container_select');">
     <div id="package_info" style="display:none;">
-        <h5>Shipping Info</h5>
-        <span style="display:block;" id="shipped_date">Shipped Date: 01-01-2023</span>
-        <span style="display:block;" id="shipped_by">Shipped By: Tester Person</span>
     </div>
 </span>
 
@@ -71,8 +68,30 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
        $('#receive_date').datepicker();
 
     });
+    function loadShippingInfo(trackin_id,parent_id) {
+        let tracking_num = $('#'+tracking_id).val();
+
+        $.ajax({
+            url: '<?php echo $ajaxUrl; ?>',
+            data: {
+                project_id:<?php echo $project->project_id; ?>,
+                track_num: tracking_num,
+                process: 'shipping_info'
+            },
+            type: 'POST'
+        }).done(function (html) {
+            if (html != "") {
+                $('#' + parent_id).css('display', 'block');
+                let shippingInfo = JSON.parse(html);
+                let shipHTML = "<table><tr><th colspan='2'>Shipping Info</th></tr>" +
+                    "<tr><td>Shipped Date</td><td>"+shippingInfo['ship_date']+"</td></tr>" +
+                    "<tr><td>Shipped By</td><td>"+shippingInfo['shipped_by']+"</td></tr>" +
+                    "</table>";
+            }
+        });
+    }
+
     function loadShippingSamples(tracking_id,sample_element) {
-        $('#package_info').css('display','block');
         $('#sample_list').css('display','block');
         $('#container_container').css('display','table-cell');
         let tracking_num = $('#'+tracking_id).val();
@@ -154,37 +173,6 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
             tableHTML += "</tr></table>";
             $('#'+table_id).append(tableHTML);
         });
-
-        /*let containerLayout = ["A1","A2","A3","A4","A5","A6","A7","A8","A9","A10","B1","B2","B3","B4","B5","B6","B7","B8","B9","B10"];
-
-        let currentSample = {'A1': {'id':'2345','type':'Blood'}};
-        let tableHTML = "<table class='bric_container'><tr>";
-        let i = 0;
-        let previousRow = "";
-        let currentRow = "";
-
-        while (i < containerLayout.length) {
-            let currentSlot = containerLayout[i];
-            if (currentSlot == "") continue;
-            let currentRow = currentSlot.substring(0,1);
-
-            if (previousRow != "" && currentRow != previousRow) {
-                tableHTML += "</tr><tr>";
-            }
-            tableHTML += "<td><span class='slot_label'>"+currentSlot+"</span>";
-            if (currentSlot in currentSample) {
-                tableHTML += "<div id='sample_slot_"+currentSlot+"'>ID: "+currentSample[currentSlot]['id']+"<br/>Type:"+currentSample[currentSlot]['type']+"</div>";
-            }
-            else {
-                tableHTML += "<div id='sample_slot_"+currentSlot+"'><span class='scan_barcode'><label for='barcode_slot_"+currentSlot+"'>Scan Barcode:</label><input type='text' id='barcode_slot_"+currentSlot+"' onblur='loadSample(this,\"sample_slot_"+currentSlot+"\")' /></span></div>";
-            }
-            tableHTML += "</td>";
-            previousRow = currentRow;
-            i++;
-        }
-        tableHTML += "</tr></table>";
-
-        $('#'+table_id).append(tableHTML);*/
     }
 
     function loadSample(barcode,slot_id) {
@@ -212,7 +200,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
                     sampleTable += "<tr><td>Participant ID</td><td>" + sampleData['participant_id'] + "</td></tr>" +
                         "<tr><td>Collection Date</td><td>" + sampleData['collect_date'] + "</td></tr>" +
                         "<tr><td><h5>Expected Type</h5><br/>" + sampleData['planned_type'] + "</td><td><h5>Actual Type</h5><br/>" + sampleData['actual_type'] + "</td></tr>" +
-                        "<tr><td><h5>Expected Collect Event</h5><br/>" + sampleData['planned_collect'] + "</td><td><h5>Actual Collect Event</h5><br/>" + sampleData['actual_collect'] + "</td></tr>";
+                        "<tr><td><h5>Expected Collect Event</h5><br/>" + sampleData['planned_collect'] + "</td><td><h5>Actual Collect Event</h5><br/>" + sampleData['actual_collect'] + "</td></tr><tr><td>Sample ID</td><td>"+barcode+"</td></tr><tr><td>Sample Type</td><td>Blood</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr>";
                     sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\"" + barcode + "\",\"" + parent_id + "\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr>";
                     $('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']);
                     sampleTable += "</table>";

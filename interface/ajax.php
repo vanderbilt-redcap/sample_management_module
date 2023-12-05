@@ -114,6 +114,34 @@ if ($project_id != "" && is_numeric($project_id)) {
             }
         }
     }
+    elseif ($process == "shipping_info") {
+        $trackNum = $_POST['track_num'];
+        $trackField = $settings[$module::LOOKUP_FIELD][0];
+        $shippingInfo = array();
+
+        if ($trackNum != "" && $trackField != "") {
+            $shipData = json_decode(\REDCap::getData(
+                array(
+                    'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[".$trackField."] = '".$trackNum."'",
+                    'fields'=>array($project->table_pk,$settings[$module::SHIP_DATE],$settings[$module::SHIPPED_BY]), 'exportAsLabels' => true,
+
+                )
+            ),true);
+
+            if (empty($shipData['errors']) && is_array($shipData)) {
+                foreach ($shipData as $index => $sData) {
+                    $shippingInfo[$sData[$project->table_pk]] = array(
+                        'ship_date'=>$sData[$settings[$module::SHIP_DATE]],"shipped_by" => $sData[$settings[$module::SHIPPED_BY]]
+                    );
+                    if ($sData[$settings[$module::SHIP_DATE]] != "" && $sData[$settings[$module::SHIPPED_BY]] != "") {
+                        break;
+                    }
+                }
+            }
+        }
+
+        $tableHTML = json_encode($shippingInfo);
+    }
 }
 
 echo $tableHTML;
