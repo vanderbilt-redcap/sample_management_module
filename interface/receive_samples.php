@@ -120,7 +120,6 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
     }
 
     function loadContainer(record,table_id,container = '') {
-        console.log(record);
         $.ajax({
             url: '<?php echo $ajaxUrl; ?>',
             data: {
@@ -147,7 +146,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
                     tableHTML += "<div id='sample_slot_"+slotID+"'>ID: "+slotLabel+"</div>";
                 }
                 else {
-                    tableHTML += "<div id='sample_slot_"+slotID+"'><span class='scan_barcode'><label for='barcode_slot_"+slotID+"'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_"+slotID+"' onchange='saveSample(this.value,\""+slotID+"\",\"sample_issue_\");loadSample(this.value,\""+slotID+"\");' /></span></div>";
+                    tableHTML += "<div id='sample_slot_"+slotID+"'><span class='scan_barcode'><label for='barcode_slot_"+slotID+"'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_"+slotID+"' oninput='saveSample(this.value,\""+slotID+"\",\"sample_issue_\");loadSample(this.value,\""+slotID+"\");' /></span></div>";
                 }
                 tableHTML += "</td>";
                 previousRow = currentRow;
@@ -189,12 +188,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
     }
 
     function loadSample(barcode,slot_id) {
-        let parent_id = "sample_slot_"+slot_id;
-        $('#sample_info_container').css('display','table-cell');
         let sampleHTML = generateSampleInfo(barcode,slot_id);
-        if (sampleHTML != "") {
-            $('#sample_info').html(sampleHTML);
-        }
     }
 
     function generateSampleInfo(barcode,slot_id) {
@@ -210,17 +204,23 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
             type: 'POST'
         }).done(function (html) {
             if (html != "") {
-                let sampleTable = "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr>";
-                let sampleData = JSON.parse(html);
-                sampleTable += "<tr><td>Participant ID</td><td>" + sampleData['participant_id'] + "</td></tr>" +
-                    "<tr><td>Collection Date</td><td>" + sampleData['collect_date'] + "</td></tr>" +
-                    "<tr><td>Expected Type<br/>" + sampleData['planned_type'] + "</td><td>Actual Type<br/>" + sampleData['actual_type'] + "</td></tr>" +
-                    "<tr><td>Expected Collect Event<br/>" + sampleData['planned_collect'] + "</td><td>Actual Collect Event<br/>" + sampleData['actual_collect'] + "</td></tr>";
-                sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+barcode+"\",\""+parent_id+"\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr></table>";
-                $('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']);
+                let resultData = JSON.parse(html);
+                for (const key in resultData) {
+                    if (key == "") continue;
+                    sampleTable = "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr>";
+                    let sampleData = resultData[key];
+                    sampleTable += "<tr><td>Participant ID</td><td>" + sampleData['participant_id'] + "</td></tr>" +
+                        "<tr><td>Collection Date</td><td>" + sampleData['collect_date'] + "</td></tr>" +
+                        "<tr><td><h5>Expected Type</h5><br/>" + sampleData['planned_type'] + "</td><td><h5>Actual Type</h5><br/>" + sampleData['actual_type'] + "</td></tr>" +
+                        "<tr><td><h5>Expected Collect Event</h5><br/>" + sampleData['planned_collect'] + "</td><td><h5>Actual Collect Event</h5><br/>" + sampleData['actual_collect'] + "</td></tr>";
+                    sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\"" + barcode + "\",\"" + parent_id + "\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr>";
+                    $('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']);
+                    sampleTable += "</table>";
+                }
+                $('#sample_info_container').css('display','table-cell');
+                $('#sample_info').html(sampleTable);
             }
         });
-        return sampleTable;
         //return "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr><tr><td>Sample Type</td><td>Blood</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr><tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+barcode+"\",\""+parent_id+"\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr></table>";
     }
 
