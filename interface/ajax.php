@@ -187,4 +187,4 @@ if ($project_id != "" && is_numeric($project_id)) {
     }
 }
 
-echo $tableHTML;
+echo $module->escape($tableHTML,ENT_QUOTES);
