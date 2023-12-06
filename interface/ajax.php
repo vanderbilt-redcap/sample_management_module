@@ -187,4 +187,4 @@ if ($project_id != "" && is_numeric($project_id)) {
     }
 }
 
-echo $tableHTM;
+echo $tableHTML;
