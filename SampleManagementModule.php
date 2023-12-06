@@ -82,63 +82,67 @@ class SampleManagementModule extends AbstractExternalModule
 
     function redcap_save_record($project_id, $record, $instrument, $event_id, $group_id, $survey_hash, $response_id, $repeat_instance = 1) {
         $settings = $this->getModuleSettings($project_id);
-        $invenProject = new \Project($settings[self::INVEN_PROJECT]);
 
         foreach ($settings[self::ASSIGN_FIELD] as $index => $assignField) {
             if (!isset($settings[self::SAMPLE_ID][$index])) continue;
             $sampleField = $settings[self::SAMPLE_ID][$index];
 
-            if (isset($_POST[$assignField]) && isset($_POST[$sampleField]) && $_POST[$sampleField] != "") {
-                if ($_POST[$assignField] != "") {
-                    $assignValue = explode("_", $_POST[$assignField]);
-
-                    $destRecord = $assignValue[2];
-                    $destEvent = $assignValue[3];
-                    $destInstance = $assignValue[4];
-                    $destField = $settings[self::SAMPLE_FIELD];
-                    $destForm = $invenProject->metadata[$destField]['form_name'];
-                    $sampleValue = $_POST[$sampleField];
-
-                    $saveData[0] = array($invenProject->table_pk => $destRecord, $destField => $sampleValue, $destForm."_complete" => "2");
-
-                    if ($invenProject->isRepeatingEvent($destEvent)) {
-                        $saveData[0]['redcap_repeat_instrument'] = '';
-                        $saveData[0]['redcap_repeat_instance'] = $destInstance;
-                    } elseif ($invenProject->isRepeatingForm($destEvent, $destForm)) {
-                        $saveData[0]['redcap_repeat_instrument'] = $destForm;
-                        $saveData[0]['redcap_repeat_instance'] = $destInstance;
-                    }
-
-                    $results = \REDCap::saveData($invenProject->project_id, 'json', json_encode($saveData), 'normal', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false);
-
-                    if (empty($results['errors'])) {
-                        $this->setProjectSetting($assignField . "_" . $record . "_" . $event_id . "_" . $repeat_instance, json_encode(array('project' => $invenProject->project_id, 'field' => $destField, 'record' => $destRecord, 'event' => $destEvent, 'instance' => $destInstance, 'value' => $_POST[$assignField], 'label' => $_POST[$_POST[$assignField]])));
-                    }
-                }
-                else {
-                    $currentStore = json_decode($this->getProjectSetting($assignField."_".$record."_".$event_id."_".$repeat_instance,$project_id),true);
-                    $storeProject = new \Project($currentStore['project']);
-                    $storeForm = $storeProject->metadata[$currentStore['field']]['form_name'];
-
-                    $saveData[0] = array($storeProject->table_pk => $currentStore['record'], $currentStore['field'] => '', $storeForm."_complete" => "0");
-
-                    if ($storeProject->isRepeatingEvent($currentStore['event'])) {
-                        $saveData[0]['redcap_repeat_instrument'] = '';
-                        $saveData[0]['redcap_repeat_instance'] = $currentStore['instance'];
-                    } elseif ($storeProject->isRepeatingForm($currentStore['event'], $storeForm)) {
-                        $saveData[0]['redcap_repeat_instrument'] = $storeForm;
-                        $saveData[0]['redcap_repeat_instance'] = $currentStore['instance'];
-                    }
-
-                    $results = \REDCap::saveData($storeProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false);
-
-                    if (empty($results['errors'])) {
-                        $this->removeProjectSetting($assignField . "_" . $record . "_" . $event_id . "_" . $repeat_instance, $project_id);
-                    }
-                }
-            }
+            list($destRecord,$saveSetting) = $this->saveSample($project_id, $record, $event_id, $repeat_instance,$assignField,$_POST[$assignField],$_POST[$sampleField]);
         }
         //$this->exitAfterHook();
+    }
+
+    function saveSample($project_id,$record,$event_id,$repeat_instance,$assignField,$assignValue,$sampleValue)
+    {
+        $settings = $this->getModuleSettings($project_id);
+        $invenProject = new \Project($settings[self::INVEN_PROJECT]);
+
+        $projectSetting = $assignField . "_" . $record . "_" . $event_id . "_" . $repeat_instance;
+        $destRecord = "";
+        if (is_array($assignValue) && !empty($assignValue)) {
+            $destRecord = $assignValue[2];
+            $destEvent = $assignValue[3];
+            $destInstance = $assignValue[4];
+            $destField = $settings[self::SAMPLE_FIELD];
+            $destForm = $invenProject->metadata[$destField]['form_name'];
+
+            $saveData[0] = array($invenProject->table_pk => $destRecord, $destField => $sampleValue, $destForm . "_complete" => "2");
+
+            if ($invenProject->isRepeatingEvent($destEvent)) {
+                $saveData[0]['redcap_repeat_instrument'] = '';
+                $saveData[0]['redcap_repeat_instance'] = $destInstance;
+            } elseif ($invenProject->isRepeatingForm($destEvent, $destForm)) {
+                $saveData[0]['redcap_repeat_instrument'] = $destForm;
+                $saveData[0]['redcap_repeat_instance'] = $destInstance;
+            }
+
+            $results = \REDCap::saveData($invenProject->project_id, 'json', json_encode($saveData), 'normal', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false);
+
+            if (empty($results['errors'])) {
+                $this->setProjectSetting($projectSetting, json_encode(array('project' => $invenProject->project_id, 'field' => $destField, 'record' => $destRecord, 'event' => $destEvent, 'instance' => $destInstance, 'value' => $assignValue, 'label' => "")));
+            }
+        } else {
+            $currentStore = json_decode($this->getProjectSetting($assignField . "_" . $record . "_" . $event_id . "_" . $repeat_instance, $project_id), true);
+            $storeProject = new \Project($currentStore['project']);
+            $storeForm = $storeProject->metadata[$currentStore['field']]['form_name'];
+
+            $saveData[0] = array($storeProject->table_pk => $currentStore['record'], $currentStore['field'] => '', $storeForm . "_complete" => "0");
+
+            if ($storeProject->isRepeatingEvent($currentStore['event'])) {
+                $saveData[0]['redcap_repeat_instrument'] = '';
+                $saveData[0]['redcap_repeat_instance'] = $currentStore['instance'];
+            } elseif ($storeProject->isRepeatingForm($currentStore['event'], $storeForm)) {
+                $saveData[0]['redcap_repeat_instrument'] = $storeForm;
+                $saveData[0]['redcap_repeat_instance'] = $currentStore['instance'];
+            }
+
+            $results = \REDCap::saveData($storeProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false);
+
+            if (empty($results['errors'])) {
+                $this->removeProjectSetting($projectSetting, $project_id);
+            }
+        }
+        return array('record_id'=>$destRecord,'setting'=>$projectSetting);
     }
 
     function buildJavascript($project_id,$record,$event_id,$repeat_instance,$instrument,$view = "form") {

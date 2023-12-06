@@ -101,6 +101,7 @@ if ($project_id != "" && is_numeric($project_id)) {
     elseif ($process == "save_sample") {
         $discrepChecks = db_real_escape_string($_POST['discreps']);
         $discrepOther = db_real_escape_string($_POST['discrep_other']);
+        $slotSetting = db_real_escape_string($_POST['slot_setting']);
         $destProject = new Project($project_id);
         $settings = $module->getModuleSettings($project_id);
         $recordID = $module->getRecordByField($project_id,$settings[$module::SAMPLE_ID][0],$record);
@@ -113,6 +114,19 @@ if ($project_id != "" && is_numeric($project_id)) {
                 $saveData[0][$module::DISCREP_FIELD."___".$dCheck] = 1;
             }
         }
+        $result = REDCap::saveData(
+            $destProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false
+        );
+
+        if (isset($settings[$module::ASSIGN_FIELD])) {
+            foreach ($settings[$module::ASSIGN_FIELD] as $index => $assignField) {
+                if (!isset($settings[$module::SAMPLE_ID][$index])) continue;
+                $sampleField = $settings[$module::SAMPLE_ID][$index];
+                $invenProject = new \Project($settings[$module::INVEN_PROJECT]);
+
+                list($destRecord, $saveSetting) = $module->saveSample($project_id, $record, $event_id, $repeat_instance, $assignField, $slotSetting, $record);
+            }
+        }
     }
     elseif ($process == "shipping_info") {
         $trackNum = $_POST['track_num'];
@@ -123,7 +137,7 @@ if ($project_id != "" && is_numeric($project_id)) {
             $shipData = json_decode(\REDCap::getData(
                 array(
                     'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[".$trackField."] = '".$trackNum."'",
-                    'fields'=>array($project->table_pk,$settings[$module::SHIP_DATE],$settings[$module::SHIPPED_BY]), 'exportAsLabels' => true,
+                    'fields'=>array($project->table_pk,$settings[$module::SHIP_DATE][0],$settings[$module::SHIPPED_BY][0]), 'exportAsLabels' => true,
 
                 )
             ),true);
@@ -131,9 +145,9 @@ if ($project_id != "" && is_numeric($project_id)) {
             if (empty($shipData['errors']) && is_array($shipData)) {
                 foreach ($shipData as $index => $sData) {
                     $shippingInfo[$sData[$project->table_pk]] = array(
-                        'ship_date'=>$sData[$settings[$module::SHIP_DATE]],"shipped_by" => $sData[$settings[$module::SHIPPED_BY]]
+                        'ship_date'=>$sData[$settings[$module::SHIP_DATE][0]],"shipped_by" => $sData[$settings[$module::SHIPPED_BY][0]]
                     );
-                    if ($sData[$settings[$module::SHIP_DATE]] != "" && $sData[$settings[$module::SHIPPED_BY]] != "") {
+                    if ($sData[$settings[$module::SHIP_DATE][0]] != "" && $sData[$settings[$module::SHIPPED_BY][0]] != "") {
                         break;
                     }
                 }

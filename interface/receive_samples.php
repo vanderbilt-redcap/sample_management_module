@@ -68,7 +68,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
        $('#receive_date').datepicker();
 
     });
-    function loadShippingInfo(trackin_id,parent_id) {
+    function loadShippingInfo(tracking_id,parent_id) {
         let tracking_num = $('#'+tracking_id).val();
 
         $.ajax({
@@ -165,7 +165,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
                     tableHTML += "<div id='sample_slot_"+slotID+"'>ID: "+slotLabel+"</div>";
                 }
                 else {
-                    tableHTML += "<div id='sample_slot_"+slotID+"'><span class='scan_barcode'><label for='barcode_slot_"+slotID+"'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_"+slotID+"' oninput='saveSample(this.value,\""+slotID+"\",\"sample_issue_\");loadSample(this.value,\""+slotID+"\");' /></span></div>";
+                    tableHTML += "<div id='sample_slot_"+slotID+"'><span class='scan_barcode'><label for='barcode_slot_"+slotID+"'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_"+slotID+"' oninput='saveSample(this.value,\""+slotID+"\",\"sample_issue_\",\"container_select\");loadSample(this.value,\""+slotID+"\");' /></span></div>";
                 }
                 tableHTML += "</td>";
                 previousRow = currentRow;
@@ -201,7 +201,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
                         "<tr><td>Collection Date</td><td>" + sampleData['collect_date'] + "</td></tr>" +
                         "<tr><td><h5>Expected Type</h5><br/>" + sampleData['planned_type'] + "</td><td><h5>Actual Type</h5><br/>" + sampleData['actual_type'] + "</td></tr>" +
                         "<tr><td><h5>Expected Collect Event</h5><br/>" + sampleData['planned_collect'] + "</td><td><h5>Actual Collect Event</h5><br/>" + sampleData['actual_collect'] + "</td></tr><tr><td>Sample ID</td><td>"+barcode+"</td></tr><tr><td>Sample Type</td><td>Blood</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr>";
-                    sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\"" + barcode + "\",\"" + parent_id + "\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr>";
+                    sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\"" + barcode + "\",\"" + parent_id + "\",\"sample_issue_\",\"container_select\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr>";
                     $('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']);
                     sampleTable += "</table>";
                 }
@@ -212,7 +212,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
         //return "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr><tr><td>Sample Type</td><td>Blood</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr><tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+barcode+"\",\""+parent_id+"\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr></table>";
     }
 
-    function saveSample(barcode,slot_id,issue_id_prefix) {
+    function saveSample(barcode,slot_id,issue_id_prefix,container) {
         let discrepData = [];
         let sample_cell_id = "sample_slot_"+slot_id;
         $("input[id^='"+issue_id_prefix+"']").each(function() {
@@ -229,6 +229,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
                 record: barcode,
                 discreps: discrepData,
                 discrep_other: discrep_other,
+                slot_setting: slot_id,
                 process: 'save_sample'
             },
             type: 'POST'
