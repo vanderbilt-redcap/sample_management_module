@@ -14,7 +14,25 @@ if ($project_id != "" && is_numeric($project_id)) {
     $settings = $module->getModuleSettings($project_id);
     $project = new \Project($project_id);
 
-    if ($process == "get_container_options") {
+    if ($process == "get_shipping_ids") {
+        $trackList = array();
+        $trackField = $settings[$module::LOOKUP_FIELD][0];
+        $trackData = json_decode(\REDCap::getData(
+            array(
+                'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => '['.$trackField.'] != ""',
+                'fields'=>array($project->table_pk,$trackField), 'exportAsLabels' => true
+            )
+        ),true);
+
+        if (empty($trackData['errors']) && is_array($trackData)) {
+            foreach ($trackData as $index => $tData) {
+                if (in_array($tData[$trackField],$trackList)) continue;
+                $trackList[$tData[$project->table_pk]] = $tData[$trackField];
+            }
+        }
+        $tableHTML = json_encode($trackList);
+    }
+    elseif ($process == "get_container_options") {
         $containerList = $module->getContainerList();
 
         $containers['options'] = "<option value=''></option>";
@@ -133,9 +151,6 @@ if ($project_id != "" && is_numeric($project_id)) {
         $result = REDCap::saveData(
             $destProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false
         );
-        echo "<pre>";
-        print_r($result);
-        echo "</pre>";
     }
     elseif ($process == "shipping_info") {
         $trackNum = $_POST['track_num'];

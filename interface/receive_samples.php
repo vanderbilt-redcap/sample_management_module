@@ -12,8 +12,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
 
 <h2>Receiving Samples</h2>
 <span>
-    <label for="tracking_num">Tracking Number: </label><input type="text" name="tracking_num" id="tracking_num" value="<?php echo ($trackingNum ?? ""); ?>">
-    <input type="button" value="Load Samples" name="load_samples" onclick="loadShippingInfo('tracking_num','package_info');loadShippingSamples('tracking_num','sample_table');loadAllContainers('container_select');">
+    <label for="tracking_num">Tracking Number: </label><select name="tracking_num" id="tracking_num" onchange="loadShippingInfo('tracking_num','package_info');loadShippingSamples('tracking_num','sample_table');loadAllContainers('container_select');"><option></option></select>
     <div id="package_info" style="display:none;">
     </div>
 </span>
@@ -66,8 +65,32 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
 <script type="text/javascript">
     $(document).ready(function() {
        $('#receive_date').datepicker();
-
+       getShippingIds('tracking_num');
     });
+
+    function getShippingIds(shipping_id) {
+        let tracking_num = $('#'+shipping_id).val();
+        $.ajax({
+            url: '<?php echo $ajaxUrl; ?>',
+            data: {
+                project_id:<?php echo $project->project_id; ?>,
+                track_num: tracking_num,
+                process: 'get_shipping_ids'
+            },
+            type: 'POST'
+        }).done(function (html) {
+            let trackSelect = $('#'+shipping_id);
+            let trackList = JSON.parse(html);
+
+            for (const key in trackList) {
+                const value = trackList[key];
+                var o = new Option(value,value);
+                trackSelect.append(o);
+            }
+            trackSelect.select2();
+        });
+    }
+
     function loadShippingInfo(tracking_id,parent_id) {
         let tracking_num = $('#'+tracking_id).val();
 
