@@ -87,7 +87,7 @@ class SampleManagementModule extends AbstractExternalModule
             if (!isset($settings[self::SAMPLE_ID][$index])) continue;
             $sampleField = $settings[self::SAMPLE_ID][$index];
 
-            list($destRecord,$saveSetting) = $this->saveSample($project_id, $record, $event_id, $repeat_instance,$assignField,$_POST[$assignField],$_POST[$sampleField]);
+            $destRecord = $this->saveSample($project_id, $record, $event_id, $repeat_instance,$assignField,$_POST[$assignField],$_POST[$sampleField]);
         }
         //$this->exitAfterHook();
     }
@@ -142,7 +142,7 @@ class SampleManagementModule extends AbstractExternalModule
                 $this->removeProjectSetting($projectSetting, $project_id);
             }
         }
-        return array('record_id'=>$destRecord,'setting'=>$projectSetting);
+        return $destRecord;
     }
 
     function buildJavascript($project_id,$record,$event_id,$repeat_instance,$instrument,$view = "form") {

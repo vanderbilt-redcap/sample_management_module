@@ -103,8 +103,10 @@ if ($project_id != "" && is_numeric($project_id)) {
         $discrepOther = db_real_escape_string($_POST['discrep_other']);
         $slotSetting = db_real_escape_string($_POST['slot_setting']);
         $destProject = new Project($project_id);
+
         $settings = $module->getModuleSettings($project_id);
         $recordID = $module->getRecordByField($project_id,$settings[$module::SAMPLE_ID][0],$record);
+        $slotField = $settings[$module::SAMPLE_FIELD];
 
         if ($recordID != "") {
             $saveData[0] = array(
@@ -114,9 +116,6 @@ if ($project_id != "" && is_numeric($project_id)) {
                 $saveData[0][$module::DISCREP_FIELD."___".$dCheck] = 1;
             }
         }
-        $result = REDCap::saveData(
-            $destProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false
-        );
 
         if (isset($settings[$module::ASSIGN_FIELD])) {
             foreach ($settings[$module::ASSIGN_FIELD] as $index => $assignField) {
@@ -124,9 +123,16 @@ if ($project_id != "" && is_numeric($project_id)) {
                 $sampleField = $settings[$module::SAMPLE_ID][$index];
                 $invenProject = new \Project($settings[$module::INVEN_PROJECT]);
 
-                list($destRecord, $saveSetting) = $module->saveSample($project_id, $record, $event_id, $repeat_instance, $assignField, $slotSetting, $record);
+                $destRecord = $module->saveSample($project_id, $record, $event_id, $repeat_instance, $assignField, $slotSetting, $record);
+                if ($destRecord != "") {
+                    $saveData[0][$assignField] = $destRecord;
+                    $saveData[0][$slotField] = $slotSetting;
+                }
             }
         }
+        $result = REDCap::saveData(
+            $destProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false
+        );
     }
     elseif ($process == "shipping_info") {
         $trackNum = $_POST['track_num'];
