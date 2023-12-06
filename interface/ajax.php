@@ -110,10 +110,10 @@ if ($project_id != "" && is_numeric($project_id)) {
 
         if ($recordID != "") {
             $saveData[0] = array(
-                $destProject->table_pk => $recordID, $module::DISCREP_OTHER => $discrepOther
+                $destProject->table_pk => $recordID, $settings[$module::DISCREP_OTHER] => $discrepOther
             );
             foreach ($discrepChecks as $dCheck) {
-                $saveData[0][$module::DISCREP_FIELD."___".$dCheck] = 1;
+                $saveData[0][$settings[$module::DISCREP_FIELD]."___".$dCheck] = 1;
             }
         }
 
@@ -133,6 +133,9 @@ if ($project_id != "" && is_numeric($project_id)) {
         $result = REDCap::saveData(
             $destProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false
         );
+        echo "<pre>";
+        print_r($result);
+        echo "</pre>";
     }
     elseif ($process == "shipping_info") {
         $trackNum = $_POST['track_num'];

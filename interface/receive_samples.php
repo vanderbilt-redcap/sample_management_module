@@ -234,7 +234,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
             },
             type: 'POST'
         }).done(function (html) {
-
+            console.log(html);
         });
     }
 </script>
