@@ -200,6 +200,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
 
     function loadSample(barcode,slot_id) {
         let sampleHTML = generateSampleInfo(barcode,slot_id);
+        $('.barcode_text').next('input');
     }
 
     function generateSampleInfo(barcode,slot_id) {
