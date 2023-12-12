@@ -445,14 +445,4 @@ class SampleManagementModule extends AbstractExternalModule
 
         return $returnValue;
     }
-
-    function processFieldEnum($enum) {
-        $enumArray = array();
-        $splitEnum = explode("\\n",$enum);
-        foreach ($splitEnum as $valuePair) {
-            $splitPair = explode(",",$valuePair);
-            $enumArray[trim($splitPair[0])] = trim($splitPair[1]);
-        }
-        return $enumArray;
-    }
 }

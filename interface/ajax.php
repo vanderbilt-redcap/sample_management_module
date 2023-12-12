@@ -121,26 +121,18 @@ if ($project_id != "" && is_numeric($project_id)) {
         $discrepOther = db_real_escape_string($_POST['discrep_other']);
         $slotSetting = db_real_escape_string($_POST['slot_setting']);
         $destProject = new Project($project_id);
-        $returnData = array("stored"=>false,"discreps"=>"");
 
         $settings = $module->getModuleSettings($project_id);
         $recordID = $module->getRecordByField($project_id,$settings[$module::SAMPLE_ID][0],$record);
         $saveData = array(0 => array());
-
-        $destMeta = $destProject->metadata;
-        $fieldLabels = array();
 
         if ($recordID != "") {
             foreach ($settings[$module::DISCREP_FIELD] as $index => $discrepField) {
                 $saveData[0] = array(
                     $destProject->table_pk => $recordID, $settings[$module::DISCREP_OTHER][$index] => $discrepOther
                 );
-                if ($destMeta[$discrepField]['element_enum'] != "") {
-                    $fieldLabels = $module->processFieldEnum($destMeta[$discrepField]['element_enum']);
-                }
                 foreach ($discrepChecks as $dCheck) {
                     $saveData[0][$discrepField . "___" . (int)$dCheck] = 1;
-                    $returnData['discreps'] .= $fieldLabels[$dCheck]."\n";
                 }
             }
         }
@@ -151,7 +143,7 @@ if ($project_id != "" && is_numeric($project_id)) {
                 $sampleField = $settings[$module::SAMPLE_ID][$index];
                 $slotField = $settings[$module::ASSIGN_CONTAIN][$index];
                 $invenProject = new \Project($settings[$module::INVEN_PROJECT]);
-
+                echo "In here trying to save for $sampleField<br/>";
                 $destRecord = $module->saveSample($project_id, $record, $event_id, $repeat_instance, $assignField, explode("_",$slotSetting), $record);
                 if ($destRecord != "") {
                     $saveData[0][$assignField] = $slotSetting;
@@ -163,11 +155,7 @@ if ($project_id != "" && is_numeric($project_id)) {
         $result = REDCap::saveData(
             $destProject->project_id, 'json', json_encode($saveData), 'overwrite', 'YMD', 'flat', null, true, true, true, false, true, array(), false, false
         );
-        if (empty($result['errors'])) {
-            $returnData['stored'] = true;
-        }
-
-        $tableHTML = json_encode($returnData);
+        $tableHTML = json_encode($result);
     }
     elseif ($process == "shipping_info") {
         $trackNum = $_POST['track_num'];
