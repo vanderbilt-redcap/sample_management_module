@@ -185,8 +185,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
                 }
                 tableHTML += "<td><span class='slot_label'>"+slotLabel+"</span>";
                 if (value['sample'] != "") {
-                    tableHTML += "<div id='sample_slot_"+slotID+"'></div>";
-                    generateSampleInfo(value['sample'],slotID,slotLabel);
+                    tableHTML += "<div id='sample_slot_"+slotID+"'>ID: "+slotLabel+"</div>";
                 }
                 else {
                     tableHTML += "<div id='sample_slot_"+slotID+"'><span class='scan_barcode'><label for='barcode_slot_"+slotID+"'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_"+slotID+"' oninput='saveSample(this.value,\""+slotID+"\",\""+slotLabel+"\",\"sample_issue_\",\"container_select\");loadSample(this.value,\""+slotID+"\",\""+slotLabel+"\");' /></span></div>";
