@@ -31,8 +31,19 @@ class SampleManagementModule extends AbstractExternalModule
     const PLANNED_TYPE = "planned-type";
     const ACTUAL_TYPE = "actual-type";
 
-    function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance = 1){
-        $data = REDCap::getData($project_id, 'array');
+    function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance = 1) {
+        /*$settings = $this->getModuleSettings($project_id);
+        $invenProject = new \Project($settings[self::INVEN_PROJECT]);
+
+        $inventoryData = \Records::getData(
+            array(
+                'return_format' => 'json',
+                'records' => array('1'), 'project_id' => $invenProject->project_id
+            )
+        );
+        echo "<pre>";
+        print_r(json_decode($inventoryData,true));
+        echo "</pre>";*/
 
         //$this->replaceFields($project_id,$record,$event_id,$repeat_instance,$instrument);
         $printJava = $this->buildJavascript($project_id,$record,$event_id,$repeat_instance,$instrument);
@@ -444,6 +455,39 @@ class SampleManagementModule extends AbstractExternalModule
         }
 
         return $returnValue;
+    }
+
+    function getContainerInfoFromSetting($project_id,$slot_setting) {
+        $returnInfo = array();
+
+        $slotInfo = explode("_",$slot_setting);
+        $settings = $this->getModuleSettings($project_id);
+        $invenProject = new \Project($settings[self::INVEN_PROJECT]);
+        $containField = $settings[self::CONTAIN_FIELD];
+        $record = $slotInfo[2];
+        $event = $slotInfo[3];
+        $instance = $slotInfo[4];
+
+        $inventoryData = json_decode(\Records::getData(
+            array(
+                'return_format' => 'json', 'fields' => array_merge($settings[self::STORE_LABEL],array($containField)),
+                'records' => array($record), 'project_id' => $invenProject->project_id,
+                'events' => array($event)
+            )
+        ),true);
+
+        foreach ($inventoryData as $index => $recordData) {
+            if ((int)$recordData['redcap_repeat_instance'] === (int)$instance) {
+                $container = $recordData[$containField];
+                foreach ($settings[self::STORE_LABEL] as $storeField) {
+                    if ($recordData[$storeField] != "") {
+                        $returnInfo = array('container' => $container,'slot'=>$recordData[$storeField]);
+                    }
+                }
+            }
+        }
+
+        return $returnInfo;
     }
 
     function processFieldEnum($enum) {
