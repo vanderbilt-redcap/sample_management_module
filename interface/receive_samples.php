@@ -9,23 +9,26 @@ $trackingNum = "";
 $ajaxUrl = $module->getUrl('interface/ajax.php');
 
 ?>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css" />
+
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
 
 <h2>Receiving Samples</h2>
 <span>
-    <label for="tracking_num">Tracking Number: </label><select name="tracking_num" id="tracking_num" onchange="loadShippingInfo('tracking_num','package_info');loadShippingSamples('tracking_num','sample_table');loadAllContainers('container_select');"><option></option></select>
+    <label for="tracking_num">Tracking Number: </label><select name="tracking_num" id="tracking_num" onchange="loadShippingInfo('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','tracking_num','package_info');loadShippingSamples('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','tracking_num','samplelist_container');loadAllContainers('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','container_select');"><option></option></select>
     <div id="package_info" style="display:none;">
     </div>
 </span>
 
 <div id="sample_list" class="sample_section" style="display:none;">
     <h3>Sample List</h3>
-    <span id="sample_table"></span>
+    <span id="samplelist_container" class="sample_table"></span>
 </div>
 
 <span style="display:table-row;">
 <span id="container_container" class="sample_section" style="display:none;">
     <h3>Container Information</h3>
-    <div style="margin:10px;"><span>Select Container</span><span><select id="container_select" onchange="loadContainer(this.value,'container_table','');"><option></option></select></span></div>
+    <div style="margin:10px;"><span>Select Container</span><span><select id="container_select" onchange="loadContainer('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','<?php echo $project->firstEventId; ?>',this.value,'container_table','');"><option></option></select></span></div>
     <div id="container_table">
     </div>
 </span>
@@ -38,9 +41,10 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
     h2,h3 {
         margin-bottom: 2px;
     }
-    table.sample_table {
-        width:400px;
+    .sample_table {
+        width:850px;
         margin:25px;
+        display:inline-block;
     }
     td,th {
         border: 1px solid black;
@@ -61,228 +65,14 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
     .scan_barcode input {
         width:75px;
     }
+    table.dataTable tbody th, table.dataTable tbody td {
+        padding: 0 0 0 10px
+    }
 </style>
+<script type="text/javascript" src="<?php echo $module->getUrl('js/functions.js'); ?>"></script>
 <script type="text/javascript">
     $(document).ready(function() {
        $('#receive_date').datepicker();
-       getShippingIds('tracking_num');
+       getShippingIds('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','tracking_num');
     });
-
-    function getShippingIds(shipping_id) {
-        let tracking_num = $('#'+shipping_id).val();
-        $.ajax({
-            url: '<?php echo $ajaxUrl; ?>',
-            data: {
-                project_id:<?php echo $project->project_id; ?>,
-                track_num: tracking_num,
-                process: 'get_shipping_ids'
-            },
-            type: 'POST'
-        }).done(function (html) {
-            let trackSelect = $('#'+shipping_id);
-            let trackList = JSON.parse(html);
-
-            for (const key in trackList) {
-                const value = trackList[key];
-                var o = new Option(value,value);
-                trackSelect.append(o);
-            }
-            trackSelect.select2();
-        });
-    }
-
-    function loadShippingInfo(tracking_id,parent_id) {
-        let tracking_num = $('#'+tracking_id).val();
-
-        $.ajax({
-            url: '<?php echo $ajaxUrl; ?>',
-            data: {
-                project_id:<?php echo $project->project_id; ?>,
-                track_num: tracking_num,
-                process: 'shipping_info'
-            },
-            type: 'POST'
-        }).done(function (html) {
-            if (html != "") {
-                $('#' + parent_id).css('display', 'block');
-                let shippingInfo = JSON.parse(html);
-                let shipHTML = "<table><tr><th colspan='2'>Shipping Info</th></tr>" +
-                    "<tr><td>Shipped Date</td><td>"+shippingInfo['ship_date']+"</td></tr>" +
-                    "<tr><td>Shipped By</td><td>"+shippingInfo['shipped_by']+"</td></tr>" +
-                    "</table>";
-            }
-        });
-    }
-
-    function loadShippingSamples(tracking_id,sample_element) {
-        $('#sample_list').css('display','block');
-        $('#container_container').css('display','table-cell');
-        let tracking_num = $('#'+tracking_id).val();
-
-        $.ajax({
-            url: '<?php echo $ajaxUrl; ?>',
-            data: {
-                project_id:<?php echo $project->project_id; ?>,
-                track_num: tracking_num,
-                process: 'sample_list'
-            },
-            type: 'POST'
-        }).done(function (html) {
-            let sampleList = JSON.parse(html);
-            let sampleHTML = "<table><tr><th>Sample Barcode</th><th>Sample Status</th><th>Location</th></tr>";
-            let sampleData = "";
-            for (const key in sampleList) {
-                const value = sampleList[key]['sample_id'];
-                const container = sampleList[key]['container'];
-                const discreps = sampleList[key]['discrep'];
-                const discrep_other = sampleList[key]['discrep_other'];
-                let back_color = "";
-                let status = "";
-                if (discrep_other != "" || discreps != "") {
-                    back_color = "pink";
-                    status = discreps+"<br/>"+discrep_other;
-                }
-                elseif (container != "") {
-                    back_color = "lightgreen";
-                    status = 'Stored';
-                }
-                sampleHTML += "<tr style='background-color:"+back_color+"' id='sample_row_"+value+"'><td>"+value+"</td><td>"+status+"</td><td>"+container+"</td></tr>";
-            }
-            sampleHTML += "</table>";
-            $('#'+sample_element).html(sampleHTML);
-        });
-    }
-
-    function loadAllContainers(table_id) {
-        $.ajax({
-            url: '<?php echo $ajaxUrl; ?>',
-            data: {
-                project_id:<?php echo $project->project_id; ?>,
-                process: 'container_list'
-            },
-            type: 'POST'
-        }).done(function (html) {
-            let containerSelect = $('#'+table_id);
-            let containerList = JSON.parse(html);
-
-            for (const key in containerList) {
-                const value = containerList[key];
-                var o = new Option(value,key);
-                containerSelect.append(o);
-            }
-            containerSelect.select2();
-        });
-    }
-
-    function loadContainer(record,table_id,container = '') {
-        $.ajax({
-            url: '<?php echo $ajaxUrl; ?>',
-            data: {
-                project_id: <?php echo $project->project_id; ?>,
-                record: record,
-                process: 'slot_info'
-            },
-            type: 'POST'
-        }).done(function (html) {
-            let slotList = JSON.parse(html);
-            let previousRow = "";
-            let currentRow = "";
-            let tableHTML = "<table><tr>";
-            for (const key in slotList) {
-                const value = slotList[key];
-                const slotID = value['index']+"_"+value['project_id']+"_"+value['record']+"_"+value['event']+"_"+value['instance'];
-                const slotLabel = value['slot'];
-                let currentRow = slotLabel.substring(0,1);
-                if (previousRow != "" && currentRow != previousRow) {
-                    tableHTML += "</tr><tr>";
-                }
-                tableHTML += "<td><span class='slot_label'>"+slotLabel+"</span>";
-                if (value['sample'] != "") {
-                    tableHTML += "<div id='sample_slot_"+slotID+"'></div>";
-                    generateSampleInfo(value['sample'],slotID,slotLabel);
-                }
-                else {
-                    tableHTML += "<div id='sample_slot_"+slotID+"'><span class='scan_barcode'><label for='barcode_slot_"+slotID+"'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_"+slotID+"' oninput='saveSample(this.value,\""+slotID+"\",\""+slotLabel+"\",\"sample_issue_\",\"container_select\");loadSample(this.value,\""+slotID+"\",\""+slotLabel+"\");' /></span></div>";
-                }
-                tableHTML += "</td>";
-                previousRow = currentRow;
-            }
-            tableHTML += "</tr></table>";
-            $('#'+table_id).append(tableHTML);
-        });
-    }
-
-    function loadSample(barcode,slot_id,slot_label) {
-        let sampleHTML = generateSampleInfo(barcode,slot_id,slot_label);
-        $('.barcode_text').next('input');
-    }
-
-    function generateSampleInfo(barcode,slot_id,slot_label) {
-        let parent_id = "sample_slot_"+slot_id;
-        let sampleTable = "";
-        $.ajax({
-            url: '<?php echo $ajaxUrl; ?>',
-            data: {
-                project_id: <?php echo $project->project_id; ?>,
-                record: barcode,
-                process: 'load_sample'
-            },
-            type: 'POST'
-        }).done(function (html) {
-            if (html != "") {
-                let resultData = JSON.parse(html);
-                for (const key in resultData) {
-                    if (key == "") continue;
-                    sampleTable = "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr>";
-                    let sampleData = resultData[key];
-                    sampleTable += "<tr><td>Participant ID</td><td>" + sampleData['participant_id'] + "</td></tr>" +
-                        "<tr><td>Collection Date</td><td>" + sampleData['collect_date'] + "</td></tr>" +
-                        "<tr><td><h5>Expected Type</h5><br/>" + sampleData['planned_type'] + "</td><td><h5>EDC Type</h5><br/>" + sampleData['actual_type'] + "</td></tr>" +
-                        "<tr><td><h5>Expected Collect Event</h5><br/>" + sampleData['planned_collect'] + "</td><td><h5>EDC Collect Event</h5><br/>" + sampleData['actual_collect'] + "</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr>";
-                    sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\"" + barcode + "\",\"" + parent_id + "\",\""+slot_label+"\",\"sample_issue_\",\"container_select\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr>";
-                    $('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']);
-                    sampleTable += "</table>";
-                }
-                $('#sample_info_container').css('display','table-cell');
-                $('#sample_info').html(sampleTable);
-            }
-        });
-        //return "<table><tr><td>Sample ID</td><td>"+barcode+"</td></tr><tr><td>Sample Type</td><td>Blood</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr><tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+barcode+"\",\""+parent_id+"\",\"sample_issue_\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr></table>";
-    }
-
-    function saveSample(barcode,slot_id,slot_label,issue_id_prefix,container_id) {
-        let discrepData = [];
-        let sample_cell_id = "sample_slot_"+slot_id;
-        let container = $('#'+container_id+' option:selected').text();
-        $("input[id^='"+issue_id_prefix+"']").each(function() {
-           if ($(this).prop("checked")) {
-               discrepData.push($(this).val());
-           }
-        });
-        let discrep_other = $("#"+issue_id_prefix+"other").val();
-
-        $.ajax({
-            url: '<?php echo $ajaxUrl; ?>',
-            data: {
-                project_id: <?php echo $project->project_id; ?>,
-                record: barcode,
-                discreps: discrepData,
-                discrep_other: discrep_other,
-                slot_setting: slot_id,
-                process: 'save_sample'
-            },
-            type: 'POST'
-        }).done(function (html) {
-            let result = JSON.parse(html);
-            console.log(result);
-            if (result['stored']) {
-                $('#sample_row_'+barcode).css('background-color','lightgreen').find('td:eq(1)').html('Stored');
-                $('#sample_row_'+barcode).find('td:eq(2)').html(container+'<br/>'+slot_label);
-            }
-            if (result['discreps'] != "") {
-                $('#sample_row_'+barcode).css('background-color','pink').find('td:eq(1)').html(result['discreps']);
-                $('#sample_row_'+barcode).find('td:eq(2)').html(container+'<br/>'+slot_label);
-            }
-        });
-    }
 </script>
