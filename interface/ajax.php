@@ -1,16 +1,16 @@
 <?php
 
-$project_id = $_POST['project_id'];
-$record = $_POST['record'];
-$process = db_real_escape_string($_POST['process']);
+$project_id = \ExternalModules\ExternalModules::escape($_POST['project_id']);
+$record = \ExternalModules\ExternalModules::escape($_POST['record']);
+$process = \ExternalModules\ExternalModules::escape($_POST['process']);
 $tableHTML = "";
 
 if ($project_id != "" && is_numeric($project_id)) {
-    $event_id = db_real_escape_string($_POST['event_id']);
-    $repeat_instance = db_real_escape_string($_POST['repeat_instance']);
+    $module = new \Vanderbilt\SampleManagementModule\SampleManagementModule($project_id);
+    $event_id = \ExternalModules\ExternalModules::escape($_POST['event_id']);
+    $repeat_instance = \ExternalModules\ExternalModules::escape($_POST['repeat_instance']);
     $currentValues = array();
 
-    $module = new \Vanderbilt\SampleManagementModule\SampleManagementModule($project_id);
     $settings = $module->getModuleSettings($project_id);
     $project = new \Project($project_id);
 
@@ -48,7 +48,7 @@ if ($project_id != "" && is_numeric($project_id)) {
     }
     elseif ($process == "get_slot_options") {
         $availableSlots = array();
-        $currentSlots = json_decode($_POST['currentSlots'],true);
+        $currentSlots = json_decode(\ExternalModules\ExternalModules::escape($_POST['currentSlots']),true);
         $slotInfo = $module->getContainerSlots(array($record),true);
         foreach ($slotInfo as $info) {
             $availableSlots[$info['project_id']."_".$info['record']."_".$info['event']."_".$info['instance']] = $info['slot'];
@@ -76,7 +76,7 @@ if ($project_id != "" && is_numeric($project_id)) {
     elseif ($process == "sample_list" && isset($_POST['track_num'])) {
         $destProject = new Project($project_id);
         $destMeta = $destProject->metadata;
-        $trackNum = $_POST['track_num'];
+        $trackNum = \ExternalModules\ExternalModules::escape($_POST['track_num']);
         $trackField = $settings[$module::LOOKUP_FIELD];
         $sampleList = array();
 
@@ -132,10 +132,10 @@ if ($project_id != "" && is_numeric($project_id)) {
         $tableHTML = json_encode($sampleList);
     }
     elseif ($process == "save_sample") {
-        $discrepChecks = $_POST['discreps'];
-        $discrepOther = db_real_escape_string($_POST['discrep_other']);
-        $slotSetting = db_real_escape_string($_POST['slot_setting']);
-        $slotLabel = db_real_escape_string($_POST['slot_label']);
+        $discrepChecks = \ExternalModules\ExternalModules::escape($_POST['discreps']);
+        $discrepOther = \ExternalModules\ExternalModules::escape($_POST['discrep_other']);
+        $slotSetting = \ExternalModules\ExternalModules::escape($_POST['slot_setting']);
+        $slotLabel = \ExternalModules\ExternalModules::escape($_POST['slot_label']);
         $destProject = new Project($project_id);
         $returnData = array("stored"=>false,"discreps"=>"");
 
@@ -186,7 +186,7 @@ if ($project_id != "" && is_numeric($project_id)) {
         $tableHTML = json_encode($returnData);
     }
     elseif ($process == "shipping_info") {
-        $trackNum = $_POST['track_num'];
+        $trackNum = \ExternalModules\ExternalModules::escape($_POST['track_num']);
         $trackField = $settings[$module::LOOKUP_FIELD];
         $shippingInfo = array();
 
@@ -214,7 +214,7 @@ if ($project_id != "" && is_numeric($project_id)) {
         $tableHTML = json_encode($shippingInfo);
     }
     elseif ($process == "checkout_sample") {
-        $slotSetting = db_real_escape_string($_POST['slot_setting']);
+        $slotSetting = \ExternalModules\ExternalModules::escape($_POST['slot_setting']);
         $slotOptions = explode("_",$slotSetting);
 
         $settings = $module->getModuleSettings($project_id);
