@@ -15,7 +15,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
 
 <h2>Receiving Samples</h2>
 <span>
-    <label for="tracking_num">Tracking Number: </label><select name="tracking_num" id="tracking_num" onchange="loadShippingInfo('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','tracking_num','package_info');loadShippingSamples('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','tracking_num','samplelist_container');loadAllContainers('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','container_select');"><option></option></select>
+    <label for="tracking_num">Tracking Number: </label><select name="tracking_num" id="tracking_num" onchange="loadShippingInfo('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','tracking_num','package_info');loadShippingSamples('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','tracking_num','samplelist_container');"><option></option></select>
     <div id="package_info" style="display:none;">
     </div>
 </span>
@@ -26,7 +26,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
 </div>
 
 <span style="display:table-row;">
-<span id="container_container" class="sample_section" style="display:none;">
+<span id="container_container" class="sample_section">
     <h3>Container Information</h3>
     <div style="margin:10px;"><span>Select Container</span><span><select id="container_select" onchange="loadContainer('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','<?php echo $project->firstEventId; ?>',this.value,'container_table','');"><option></option></select></span></div>
     <div id="container_table">
@@ -74,5 +74,6 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
     $(document).ready(function() {
        $('#receive_date').datepicker();
        getShippingIds('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','tracking_num');
+       loadAllContainers('<?php echo $ajaxUrl; ?>','<?php echo $project->project_id; ?>','container_select');
     });
 </script>

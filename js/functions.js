@@ -83,7 +83,7 @@ function loadShippingSamples(ajaxurl,project_id,tracking_id,sample_element) {
         sampleHTML += "</tbody></table>";
         $('#' + sample_element).html(sampleHTML);
         $('#sample_table').DataTable({
-            "scrollY": 250,
+            "scrollY": 150,
             "columns": [
                 {"width": "20%"},
                 {"width": "50%"},
