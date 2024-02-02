@@ -72,7 +72,7 @@ class SampleManagementModule extends AbstractExternalModule
         $assignField = $settings[self::ASSIGN_FIELD];
         $sampleField = $settings[self::SAMPLE_ID];
 
-        $destRecord = $this->saveSample($project_id, $record, $event_id, $repeat_instance, $assignField, explode("_", $_POST[$assignField]), $_POST[$sampleField]);
+        $destRecord = $this->saveSample($project_id, $record, $event_id, $repeat_instance, $assignField, explode("_", \ExternalModules\ExternalModules::escape($_POST[$assignField])), \ExternalModules\ExternalModules::escape($_POST[$sampleField]));
 
         //$this->exitAfterHook();
     }
