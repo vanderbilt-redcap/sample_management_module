@@ -222,15 +222,9 @@ if ($project_id != "" && is_numeric($project_id)) {
         $destProject = new Project($project_id);
 
         $saveData = array(0 => array());
+        $returnData = array("removed"=>false);
 
         if ($recordID != "") {
-            foreach ($settings[$module::DISCREP_FIELD] as $index => $discrepField) {
-                $saveData[0] = array(
-                    $destProject->table_pk => $recordID
-                );
-            }
-
-
             if (isset($settings[$module::ASSIGN_FIELD]) && isset($settings[$module::SAMPLE_ID]) && isset($settings[$module::ASSIGN_CONTAIN])) {
                 $assignField = $settings[$module::ASSIGN_FIELD];
                 $slotField = $settings[$module::ASSIGN_CONTAIN];
@@ -239,7 +233,7 @@ if ($project_id != "" && is_numeric($project_id)) {
                 $destRecord = $module->saveSample($project_id, $recordID, $destProject->firstEventId, "", $assignField, array(), $record);
                 $saveData[0][$assignField] = "";
                 $saveData[0][$slotField] = "";
-                $saveData[0][$destProject->table_pk] = $record;
+                $saveData[0][$destProject->table_pk] = $recordID;
             }
 
             if (!empty($saveData[0])) {
@@ -249,7 +243,7 @@ if ($project_id != "" && is_numeric($project_id)) {
             }
 
             if (empty($result['errors'])) {
-                $returnData['stored'] = ($slotSetting != "");
+                $returnData['removed'] = true;
             }
         }
 
