@@ -88,7 +88,8 @@ function loadShippingSamples(ajaxurl,project_id,tracking_id,sample_element) {
                 {"width": "20%"},
                 {"width": "50%"},
                 {"width": "30%"}
-            ]
+            ],
+            "stripeClasses": []
         });
     });
 }
@@ -256,6 +257,8 @@ function checkoutSample(ajaxurl,project_id,event_id,barcode,slot_id,slot_label,i
         let result = JSON.parse(html);
         if (result['removed']) {
             $('#' + parent_id).html("<span class='scan_barcode'><label for='barcode_slot_" + slot_id + "'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_" + slot_id + "' oninput='saveSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",this.value,\"" + slot_id + "\",\"" + slot_label + "\",\"sample_issue_\",\"container_select\");loadSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",this.value,\"" + slot_id + "\",\"" + slot_label + "\",\""+input_focus_id+"\");' /></span>");
+            $('#sample_row_' + barcode).css('background-color', 'lightgreen').find('td:eq(1)').html('');
+            $('#sample_row_' + barcode).find('td:eq(2)').html('');
         }
     });
 }
