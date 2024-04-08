@@ -32,6 +32,8 @@ class SampleManagementModule extends AbstractExternalModule
     const PLANNED_TYPE = "planned-type";
     const ACTUAL_TYPE = "actual-type";
 
+    const MANIFEST_FIELDS = "manifest-fields";
+
     function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance = 1) {
         /*$settings = $this->getModuleSettings($project_id);
         $invenProject = new \Project($settings[self::INVEN_PROJECT]);
@@ -408,7 +410,8 @@ class SampleManagementModule extends AbstractExternalModule
             self::ACTUAL_COLLECT => $this->getProjectSetting(self::ACTUAL_COLLECT,$project_id),
             self::COLLECT_DATE => $this->getProjectSetting(self::COLLECT_DATE,$project_id),
             self::PLANNED_TYPE => $this->getProjectSetting(self::PLANNED_TYPE,$project_id),
-            self::ACTUAL_TYPE => $this->getProjectSetting(self::ACTUAL_TYPE,$project_id)
+            self::ACTUAL_TYPE => $this->getProjectSetting(self::ACTUAL_TYPE,$project_id),
+            self::MANIFEST_FIELDS => $this->getProjectSetting(self::MANIFEST_FIELDS,$project_id)
         );
 
         return $moduleSettings;

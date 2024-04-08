@@ -62,33 +62,52 @@ function loadShippingSamples(ajaxurl,project_id,tracking_id,sample_element) {
     }).done(function (html) {
         //console.log(html);
         let sampleList = JSON.parse(html);
-        let sampleHTML = "<table id='sample_table' data-page-length='25'><thead><tr><th>Sample Barcode</th><th>Sample Status</th><th>Location</th></tr></thead><tbody>";
-        let sampleData = "";
-        for (const key in sampleList) {
-            const value = sampleList[key]['sample_id'];
-            const container = sampleList[key]['container'] + ' ' + sampleList[key]['slot'];
-            const discreps = sampleList[key]['discrep'];
-            const discrep_other = sampleList[key]['discrep_other'];
-            let back_color = "";
-            let status = "";
-            if (discrep_other != "" || discreps != "") {
-                back_color = "pink";
-                status = discreps + "<br/>" + discrep_other;
-            } else if (container != " ") {
-                back_color = "lightgreen";
-                status = 'Stored';
+        let sampleHTML = "<table id='sample_table' data-page-length='25'>";
+        let headerHTML = "";
+        let bodyHTML = "";
+
+        if ('field_list' in sampleList) {
+            let field_list = sampleList['field_list'];
+            headerHTML = '<thead><tr>';
+            bodyHTML = '<tbody>';
+
+            if ('data' in sampleList && 'headers' in sampleList) {
+                let sample_data = sampleList['data'];
+                let headers = sampleList['headers'];
+                for (const key in field_list) {
+                    if (field_list[key] in headers) {
+                        headerHTML += "<td>"+headers[field_list[key]]+"</td>"
+                    }
+                }
+                for (const sampleid in sample_data) {
+                    let sample = sample_data[sampleid];
+                    let back_color = "";
+                    if ("sample__status" in sample && sample["sample__status"] != "") {
+                        let status = sample["sample__status"];
+                        if (status.includes("Discrepencies:")) {
+                            back_color = "pink";
+                        }
+                        else if (status.includes("Stored:")) {
+                            back_color = "lightgreen";
+                        }
+                    }
+                    bodyHTML += "<tr style='background-color: "+back_color+"'>";
+                    for (const key in field_list) {
+                        if (field_list[key] in sample) {
+                            bodyHTML += "<td>"+sample[field_list[key]]+"</td>"
+                        }
+                    }
+                    bodyHTML += "</tr>";
+                }
             }
-            sampleHTML += "<tr style='background-color:" + back_color + "' id='sample_row_" + value + "'><td>" + value + "</td><td>" + status + "</td><td>" + container + "</td></tr>";
+            headerHTML += '</tr></thead>';
+            bodyHTML += '</tbody>';
         }
-        sampleHTML += "</tbody></table>";
+        sampleHTML += headerHTML+bodyHTML+"</table>";
         $('#' + sample_element).html(sampleHTML);
         $('#sample_table').DataTable({
             "scrollY": 150,
-            "columns": [
-                {"width": "20%"},
-                {"width": "50%"},
-                {"width": "30%"}
-            ],
+            "scrollX":true,
             "stripeClasses": []
         });
     });

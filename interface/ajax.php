@@ -78,33 +78,53 @@ if ($project_id != "" && is_numeric($project_id)) {
         $destMeta = $destProject->metadata;
         $trackNum = \ExternalModules\ExternalModules::escape($_POST['track_num']);
         $trackField = $settings[$module::LOOKUP_FIELD];
+        $manifestFields = $settings[$module::MANIFEST_FIELDS] ?? array();
         $sampleList = array();
 
         if ($trackNum != "" && $trackField != "") {
             $sampleData = json_decode(\REDCap::getData(
                 array(
                     'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[".$trackField."] = '".$trackNum."'",
-                    'fields'=>array($project->table_pk,$settings[$module::SAMPLE_ID],$settings[$module::SAMPLE_FIELD],$trackField,$settings[$module::COLLECT_DATE],$settings[$module::PLANNED_TYPE],$settings[$module::ACTUAL_TYPE],$settings[$module::PLANNED_COLLECT],$settings[$module::ACTUAL_COLLECT],$settings[$module::PARTICIPANT_ID],$settings[$module::DISCREP_OTHER],$settings[$module::ASSIGN_FIELD],$settings[$module::DISCREP_FIELD]), 'exportAsLabels' => true
+                    'fields'=>array_merge($manifestFields,array($project->table_pk,$trackField,$settings[$module::DISCREP_OTHER],$settings[$module::ASSIGN_FIELD],$settings[$module::DISCREP_FIELD])), 'exportAsLabels' => true
                 )
             ),true);
 
             if (empty($sampleData['errors']) && is_array($sampleData)) {
                 foreach ($sampleData as $index => $sData) {
                     $sampleRecordID = $sData[$project->table_pk]; 
-                    $sampleList[$sampleRecordID] = $module->getContainerInfoFromSetting($project_id, $sData[$settings[$module::ASSIGN_FIELD]]);
-                    $sampleList[$sampleRecordID]['sample_id'] = $sData[$settings[$module::SAMPLE_ID]];
+                    $storageInfo = $module->getContainerInfoFromSetting($project_id, $sData[$settings[$module::ASSIGN_FIELD]]);$sampleList[$sampleRecordID]['sample_id'] = $sData[$settings[$module::SAMPLE_ID]];
+                    $stored = $storageInfo['container']." ".$storageInfo['slot'];
 
                     $discrepField = $settings[$module::DISCREP_FIELD];
                     $discrepOtherField = $settings[$module::DISCREP_OTHER];
-                    $sampleList[$sampleRecordID]['discrep'] = "";
-                    $sampleList[$sampleRecordID]['discrep_other'] = $sData[$discrepOtherField];
+                    $discrepencies = "";
                     if ($destMeta[$discrepField]['element_enum'] != "") {
                         $fieldLabels = $module->processFieldEnum($destMeta[$discrepField]['element_enum']);
                     }
                     foreach ($fieldLabels as $value => $label) {
                         if ($sData[$discrepField . "___" . (int)$value] == 1) {
-                            $sampleList[$sampleRecordID]['discrep'] .= $label . "<br/>";
+                            $discrepencies .= $label . "<br/>";
                         }
+                    }
+                    if ($discrepencies != "" && $sData[$discrepOtherField] != "") {
+                        $discrepencies .= $sData[$discrepOtherField];
+                    }
+                    $sampleList['field_list'] = array_merge(array('sample__store','sample__status'),$manifestFields);
+                    if (!isset($sampleList[$sampleRecordID]['sample__store'])) {
+                        $sampleList['headers']['sample__store'] = "Storage";
+                        $sampleList['data'][$sampleRecordID]['sample__store'] = "";
+                    }
+                    $sampleList['data'][$sampleRecordID]['sample__store'] = $stored;
+                    if (!isset($sampleList['data'][$sampleRecordID]['sample__status'])) {
+                        $sampleList['headers']['sample__status'] = "Status";
+                        $sampleList['data'][$sampleRecordID]['sample__status'] = "";
+                    }
+                    $sampleList['data'][$sampleRecordID]['sample__status'] = ($stored != " " ? "Stored: $stored": "").($discrepencies != "" ? "<br/>Discrepencies:<br/>$discrepencies" : "");
+                    foreach ($manifestFields as $manifestField) {
+                        if (!isset($sampleList['headers'][$manifestField])) {
+                            $sampleList['headers'][$manifestField] = $destMeta[$manifestField]['element_label'];
+                        }
+                        $sampleList['data'][$sampleRecordID][$manifestField] = $sData[$manifestField];
                     }
                 }
             }
@@ -188,13 +208,14 @@ if ($project_id != "" && is_numeric($project_id)) {
     elseif ($process == "shipping_info") {
         $trackNum = \ExternalModules\ExternalModules::escape($_POST['track_num']);
         $trackField = $settings[$module::LOOKUP_FIELD];
+
         $shippingInfo = array();
 
         if ($trackNum != "" && $trackField != "") {
             $shipData = json_decode(\REDCap::getData(
                 array(
                     'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[".$trackField."] = '".$trackNum."'",
-                    'fields'=>array($project->table_pk,$settings[$module::SHIP_DATE],$settings[$module::SHIPPED_BY]), 'exportAsLabels' => true,
+                    'fields'=>array($settings[$module::SHIP_DATE],$settings[$module::SHIPPED_BY]), 'exportAsLabels' => true,
 
                 )
             ),true);
@@ -204,6 +225,7 @@ if ($project_id != "" && is_numeric($project_id)) {
                     $shippingInfo = array(
                         'ship_date'=>$sData[$settings[$module::SHIP_DATE]],"shipped_by" => $sData[$settings[$module::SHIPPED_BY]]
                     );
+
                     if ($sData[$settings[$module::SHIP_DATE]] != "" && $sData[$settings[$module::SHIPPED_BY]] != "") {
                         break;
                     }
