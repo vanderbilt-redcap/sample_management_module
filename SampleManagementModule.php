@@ -31,7 +31,6 @@ class SampleManagementModule extends AbstractExternalModule
     const COLLECT_DATE = "collect-date";
     const PLANNED_TYPE = "planned-type";
     const ACTUAL_TYPE = "actual-type";
-
     const MANIFEST_FIELDS = "manifest-fields";
 
     function redcap_data_entry_form($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance = 1) {
@@ -350,7 +349,7 @@ class SampleManagementModule extends AbstractExternalModule
                                     $sampleData = $this->getSampleInfo($this::getProjectId(),array(),"[" . $settings[self::SAMPLE_ID] . "] = '" . $storedSample . "'");
                                     foreach ($sampleData as $sData) {
                                         $slotArray['collect_date'] = $sData[self::COLLECT_DATE];
-                                        $slotArray['planned_type'] = $sData[self::SAMPLE_TYPE];
+                                        $slotArray['actual_type'] = $sData[self::ACTUAL_TYPE];
                                         $slotArray['participant_id'] = $sData[self::PARTICIPANT_ID];
                                     }
                                 }
@@ -439,7 +438,7 @@ class SampleManagementModule extends AbstractExternalModule
             $moduleSettings[self::ASSIGN_CONTAIN],$moduleSettings[self::ASSIGN_FIELD],$moduleSettings[self::LOOKUP_FIELD],
             $moduleSettings[self::SHIPPED_BY],$moduleSettings[self::SHIP_DATE],$moduleSettings[self::COLLECT_EVENT],
             $moduleSettings[self::COLLECT_DATE],$moduleSettings[self::PLANNED_TYPE],$moduleSettings[self::PLANNED_COLLECT],
-            $moduleSettings[self::PARTICIPANT_ID]);
+            $moduleSettings[self::PARTICIPANT_ID],$moduleSettings[self::ACTUAL_TYPE],$moduleSettings[self::ACTUAL_COLLECT]);
 
         $result = json_decode(\REDCap::getData(
             array(
@@ -464,6 +463,8 @@ class SampleManagementModule extends AbstractExternalModule
                     self::COLLECT_EVENT => $rData[$moduleSettings[self::COLLECT_EVENT]],
                     self::PLANNED_TYPE => $rData[$moduleSettings[self::PLANNED_TYPE]],
                     self::PLANNED_COLLECT => $rData[$moduleSettings[self::PLANNED_COLLECT]],
+                    self::ACTUAL_TYPE => $rData[$moduleSettings[self::ACTUAL_TYPE]],
+                    self::ACTUAL_COLLECT => $rData[$moduleSettings[self::ACTUAL_COLLECT]],
                     self::COLLECT_DATE => $rData[$moduleSettings[self::COLLECT_DATE]],
                     self::PARTICIPANT_ID => $rData[$moduleSettings[self::PARTICIPANT_ID]]
                 );
