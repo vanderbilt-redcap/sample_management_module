@@ -42,7 +42,6 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
         margin-bottom: 2px;
     }
     .sample_table {
-        width:850px;
         margin:25px;
         display:inline-block;
     }
