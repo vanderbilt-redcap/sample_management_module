@@ -63,7 +63,7 @@ $ajaxUrl = $module->getUrl('interface/ajax.php');
         font-weight:bold;
     }
     .scan_barcode input {
-        width:75px;
+        width:80%;
     }
     table.dataTable tbody th, table.dataTable tbody td {
         padding: 0 0 0 10px

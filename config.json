@@ -94,64 +94,75 @@
       "type": "field-list"
     },
     {
-          "key": "container-label",
-          "name": "Display Label for Inventory Storage Container (uses data piping from the Inventory Project)",
-          "type": "text"
+      "key": "container-label",
+      "name": "Display Label for Inventory Storage Container (uses data piping from the Inventory Project)",
+      "type": "text"
     },
     {
-          "key": "storage-label",
-          "name": "Display Label for Inventory Storage Location (uses data piping from the Inventory Project)",
-          "type": "text"
+      "key": "storage-label",
+      "name": "Display Label for Inventory Storage Location (uses data piping from the Inventory Project)",
+      "type": "text"
     },
     {
-          "key": "sample-id",
-          "name": "Field on This Project Storing the Sample ID",
-          "type": "field-list"
+      "key": "sample-id",
+      "name": "Field on This Project Storing the Sample ID",
+      "type": "field-list"
     },
     {
-          "key": "lookup-field",
-          "name": "Field to Query Sample Shipment",
-          "type": "field-list"
+      "key": "lookup-field",
+      "name": "Field to Query Sample Shipment",
+      "type": "field-list"
     },
     {
-          "key": "collect-event",
-          "name": "Field Storing Time of Sample Collection",
-          "type": "field-list"
+      "key": "collect-event",
+      "name": "Field Storing Time of Sample Collection",
+      "type": "field-list"
     },
     {
-          "key": "sample-type",
-          "name": "Field Storing Sample Type",
-          "type": "field-list"
+      "key": "sample-type",
+      "name": "Field Storing Sample Type",
+      "type": "field-list"
     },
     {
-          "key": "shipped-by",
-          "name": "Field Storing Person Who Sent Package",
-          "type": "field-list"
+      "key": "shipped-by",
+      "name": "Field Storing Person Who Sent Package",
+      "type": "field-list"
     },
     {
-          "key": "ship-date",
-          "name": "Field Storing Date of Shipping",
-          "type": "field-list"
+      "key": "ship-date",
+      "name": "Field Storing Date of Shipping",
+      "type": "field-list"
     },
     {
-          "key": "discrepancy-field",
-          "name": "Field for Sample Discrepancy",
-          "type": "field-list"
+      "key": "discrepancy-field",
+      "name": "Field for Sample Discrepancy",
+      "type": "field-list"
     },
     {
-          "key": "discrepancy-other",
-          "name": "Field for Other Sample Discrepancy Options",
-          "type": "field-list"
+      "key": "discrepancy-other",
+      "name": "Field for Other Sample Discrepancy Options",
+      "type": "field-list"
     },
     {
-          "key": "assign-contain",
-          "name": "Field on This Project To Select Container",
-          "type": "field-list"
+      "key": "assign-contain",
+      "name": "Field on This Project To Select Container",
+      "type": "field-list"
     },
     {
       "key": "assign-field",
       "name": "Field on This Project To Select Sample Storage Location",
       "type": "field-list"
+    },
+    {
+      "key": "manifest-section",
+      "name": "Field List for Sample Receiving Manifest Table",
+      "type": "descriptive"
+    },
+    {
+      "key": "manifest-fields",
+      "name": "Report Field",
+      "type": "field-list",
+      "repeatable": true
     }
   ],
   "log-file": "log.txt",
