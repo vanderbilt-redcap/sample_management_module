@@ -185,7 +185,7 @@ function loadContainer(ajaxurl,project_id,event_id,record,table_id,container = '
             let slotLabel = value['slot'];
             let currentRow = slotLabel.substring(0, 1);
             let back_color = "";
-            console.log(value);
+
             if (value['actual_type'] in SAMPLE_COLORS) {
                 back_color = SAMPLE_COLORS[value['actual_type']];
             }
@@ -228,6 +228,7 @@ function retrieveSampleInfo(ajaxurl,project_id,event_id,barcode,slot_id,slot_lab
         //console.log(html);
         if (html != "") {
             let resultData = JSON.parse(html);
+            //console.log(resultData);
             for (const key in resultData) {
                 if (key == "") continue;
                 sampleTable = "<table><tr><td>Sample ID</td><td>" + barcode + "</td></tr>";
@@ -243,7 +244,15 @@ function retrieveSampleInfo(ajaxurl,project_id,event_id,barcode,slot_id,slot_lab
                 sampleTable += "<tr><td>Participant ID</td><td>" + sampleData['participant_id'] + "</td></tr>" +
                     "<tr><td>Collection Date</td><td>" + sampleData['collect_date'] + "</td></tr>" +
                     "<tr><td style='background-color: "+planned_back+"'><h5>Expected Type</h5><br/>" + sampleData['planned_type'] + "</td><td style='background-color: "+actual_back+"'><h5>EDC Type</h5><br/>" + sampleData['actual_type'] + "</td></tr>" +
-                    "<tr><td><h5>Expected Collect Event</h5><br/>" + sampleData['planned_collect'] + "</td><td><h5>EDC Collect Event</h5><br/>" + sampleData['actual_collect'] + "</td></tr><tr><td>Issues</td><td><span><input id='sample_issue_1' type='checkbox' value='1' /><label for='sample_issue_1'>Empty</label></span><br/><span><input id='sample_issue_2' type='checkbox' value='2' /><label for='sample_issue_2'>Wrong Sample Type</label></span><br/><span><input id='sample_issue_3' type='checkbox' value='3' /><label for='sample_issue_3'>Sample Missing</label></span><br/><span><input id='sample_issue_4' type='checkbox' value='4' /><label for='sample_issue_4'>Damaged Sample</label></span><br/><span><input id='sample_issue_5' type='checkbox' value='5' /><label for='sample_issue_5'>Damaged Tube</label></span></td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'></textarea></td></tr>";
+                    "<tr><td><h5>Expected Collect Event</h5><br/>" + sampleData['planned_collect'] + "</td><td><h5>EDC Collect Event</h5><br/>" + sampleData['actual_collect'] + "</td></tr><tr><td>Issues</td><td>";
+
+                let discreps = sampleData['discreps'];
+                for (const index in discreps) {
+                    let discrepOption = discreps[index];
+                    console.log(discrepOption);
+                    sampleTable += "<span><input id='sample_issue_"+index+"' type='checkbox' "+discrepOption['value']+" value='"+index+"' /><label for='sample_issue_"+index+"'>"+discrepOption['label']+"</label></span><br/>";
+                }
+                sampleTable += "</td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'>"+sampleData['discrep_other']+"</textarea></td></tr>";
                 sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\"" + barcode + "\",\"" + parent_id + "\",\"" + slot_label + "\",\"sample_issue_\",\"container_select\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr>";
                 $('#' + parent_id).parent().nextAll().find('.barcode_text').first().focus();;
                 //$('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']+ "<br/><input value='Checkout' type='button' id='sample_checkout_" + slot_label + "' onclick='checkoutSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+barcode+"\",\""+slot_id+"\",\""+slot_label+"\",\""+input_next+"\");' />");
@@ -287,6 +296,7 @@ function saveSample(ajaxurl,project_id,event_id,barcode,slot_id,slot_label,issue
         }).done(function (html) {
             //console.log(html);
             let result = JSON.parse(html);
+            console.log(result);
             if (result['stored']) {
                 $('#sample_row_' + barcode).css('background-color', 'lightgreen').find('td:eq(1)').html('Stored');
                 $('#sample_row_' + barcode).find('td:eq(2)').html(container + '<br/>' + slot_label);
