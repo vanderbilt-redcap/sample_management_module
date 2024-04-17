@@ -195,7 +195,7 @@ function loadContainer(ajaxurl,project_id,event_id,record,table_id,parent_id = '
             tableHTML += "<td><span class='slot_label'>" + slotLabel + "</span>";
             if (value['sample_id'] != "") {
                 //tableHTML += "<div id='sample_slot_" + slotID + "'>Part. ID: " + value['participant_id'] + "<br/>Samp. ID: " + value['sample_id'] + "<br/>Sample Type: " + value['planned_type'] + "<br/>Collect Date: " + value['collect_date'] + "<br/><input value='Checkout' type='button' id='sample_checkout_" + slotLabel + "' onclick='checkoutSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+value['sample_id']+"\",\""+slotID+"\",\""+slotLabel+"\",\"barcode_slot_"+value['project_id'] + "_" + value['record'] + "_" + value['event'] + "_" + (value['instance']+1)+"\");' /></div>";
-                tableHTML += "<div style='background-color: "+back_color+"' id='sample_slot_" + slotID + "'>Part. ID: " + value['participant_id'] + "<br/>Samp. ID: " + value['sample_id'] + "<br/>Sample Type: " + value['actual_type'] + "<br/>Collect Date: " + value['collect_date'] + "<br/><input value='Sample Info' type='button' id='sample_info_" + slotLabel + "' onclick='retrieveSampleInfo(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+value['sample_id']+"\",\""+slotID+"\",\""+slotLabel+"\",\"barcode_slot_"+value['project_id'] + "_" + value['record'] + "_" + value['event'] + "_" + (value['instance']+1)+"\");' /></div>";
+                tableHTML += "<div style='background-color: "+back_color+"' id='sample_slot_" + slotID + "'>Part. ID: " + value['participant_id'] + "<br/>Samp. ID: " + value['sample_id'] + "<br/>Sample Type: " + value['actual_type'] + "<br/>Collect Date: " + value['collect_date'] + "<br/><input value='Sample Info' type='button' id='sample_info_" + slotLabel + "' onclick='retrieveSampleInfo(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+value['sample_id']+"\",\""+slotID+"\",\""+slotLabel+"\",\"barcode_slot_"+value['project_id'] + "_" + value['record'] + "_" + value['event'] + "_" + (value['instance']+1)+"\");' /><br/><input value='Checkout' type='button' id='sample_checkout_" + slotLabel + "' onclick='checkoutSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+value['sample_id']+"\",\""+slotID+"\",\""+slotLabel+"\",\"barcode_slot_"+value['project_id'] + "_" + value['record'] + "_" + value['event'] + "_" + (value['instance']+1)+"\");' /></div>";
             } else {
                 tableHTML += "<div id='sample_slot_" + slotID + "'><span class='scan_barcode'><label for='barcode_slot_" + slotID + "'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_" + slotID + "' oninput='saveSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",this.value,\"" + slotID + "\",\"" + slotLabel + "\",\"sample_issue_\",\"container_select\");loadSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",this.value,\"" + slotID + "\",\"" + slotLabel + "\",\"barcode_slot_"+value['project_id'] + "_" + value['record'] + "_" + value['event'] + "_" + (value['instance']+1)+"\");' /></span></div>";
             }
@@ -257,7 +257,7 @@ function retrieveSampleInfo(ajaxurl,project_id,event_id,barcode,slot_id,slot_lab
                 }
                 sampleTable += "</td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'>"+sampleData['discrep_other']+"</textarea></td></tr>";
                 sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\"" + barcode + "\",\"" + parent_id + "\",\"" + slot_label + "\",\"sample_issue_\",\"container_select\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr>";
-                //$('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']+ "<br/><input value='Checkout' type='button' id='sample_checkout_" + slot_label + "' onclick='checkoutSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+barcode+"\",\""+slot_id+"\",\""+slot_label+"\",\""+input_next+"\");' />");
+                $('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']+ "<br/><input value='Checkout' type='button' id='sample_checkout_" + slot_label + "' onclick='checkoutSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+barcode+"\",\""+slot_id+"\",\""+slot_label+"\",\""+input_next+"\");' />");
                 //$('#' + parent_id).html("<span style='background-color: "+actual_back+"'>Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']+ "<br/><input value='Sample Info' type='button' id='sample_info_" + slot_label + "' onclick='retrieveSampleInfo(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+barcode+"\",\""+slot_id+"\",\""+slot_label+"\",\""+input_next+"\");' /></span>");
 
                 sampleTable += "</table>";
@@ -300,17 +300,17 @@ function saveSample(ajaxurl,project_id,event_id,barcode,slot_id,slot_label,issue
             let result = JSON.parse(html);
             //console.log(result);
             let parent_id = "sample_slot_"+slot_id;
-            loadContainer(ajaxurl, project_id, event_id, container.val(), 'container_table',parent_id);
             if (result['stored']) {
-                $('#sample_row_' + barcode).css('background-color', 'lightgreen').find('td:eq(1)').html('Stored');
-                $('#sample_row_' + barcode).find('td:eq(2)').html(container.text() + '<br/>' + slot_label);
+                $('#sample_row_' + barcode).css('background-color', 'lightgreen').find('td:eq(0)').html('Stored');
+                $('#sample_row_' + barcode).find('td:eq(1)').html(container.text() + '<br/>' + slot_label);
+                loadContainer(ajaxurl, project_id, event_id, container.val(), 'container_table',parent_id);
             } else {
-                $('#sample_row_' + barcode).css('background-color', 'lightgreen').find('td:eq(1)').html('');
-                $('#sample_row_' + barcode).find('td:eq(2)').html('');
+                $('#sample_row_' + barcode).css('background-color', '').find('td:eq(0)').html('');
+                $('#sample_row_' + barcode).find('td:eq(1)').html('');
             }
             if (result['discreps'] != "") {
-                $('#sample_row_' + barcode).css('background-color', 'pink').find('td:eq(1)').html(result['discreps']);
-                $('#sample_row_' + barcode).find('td:eq(2)').html(container.text() + '<br/>' + slot_label);
+                $('#sample_row_' + barcode).css('background-color', 'pink').find('td:eq(0)').html(result['discreps']);
+                $('#sample_row_' + barcode).find('td:eq(1)').html(container.text() + '<br/>' + slot_label);
             }
         });
     }
@@ -332,9 +332,9 @@ function checkoutSample(ajaxurl,project_id,event_id,barcode,slot_id,slot_label,i
         //console.log(html);
         let result = JSON.parse(html);
         if (result['removed']) {
-            $('#' + parent_id).html("<span class='scan_barcode'><label for='barcode_slot_" + slot_id + "'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_" + slot_id + "' oninput='saveSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",this.value,\"" + slot_id + "\",\"" + slot_label + "\",\"sample_issue_\",\"container_select\");loadSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",this.value,\"" + slot_id + "\",\"" + slot_label + "\",\""+input_focus_id+"\");' /></span>");
-            $('#sample_row_' + barcode).css('background-color', 'lightgreen').find('td:eq(1)').html('');
-            $('#sample_row_' + barcode).find('td:eq(2)').html('');
+            $('#' + parent_id).css('background-color','').html("<span class='scan_barcode'><label for='barcode_slot_" + slot_id + "'>Scan Barcode:</label><input class='barcode_text' type='text' id='barcode_slot_" + slot_id + "' oninput='saveSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",this.value,\"" + slot_id + "\",\"" + slot_label + "\",\"sample_issue_\",\"container_select\");loadSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",this.value,\"" + slot_id + "\",\"" + slot_label + "\",\""+input_focus_id+"\");' /></span>");
+            $('#sample_row_' + barcode).css('background-color', '').find('td:eq(0)').html('');
+            $('#sample_row_' + barcode).find('td:eq(1)').html('');
         }
     });
 }
