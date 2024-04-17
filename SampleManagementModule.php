@@ -73,7 +73,7 @@ class SampleManagementModule extends AbstractExternalModule
         $assignField = $settings[self::ASSIGN_FIELD];
         $sampleField = $settings[self::SAMPLE_ID];
 
-        $destRecord = $this->saveSample($project_id, $record, $event_id, $repeat_instance, $assignField, explode("_", \ExternalModules\ExternalModules::escape($_POST[$assignField])), \ExternalModules\ExternalModules::escape($_POST[$sampleField]));
+        list($destRecord,$currentStoreSetting) = $this->saveSample($project_id, $record, $event_id, $repeat_instance, $assignField, explode("_", \ExternalModules\ExternalModules::escape($_POST[$assignField])), \ExternalModules\ExternalModules::escape($_POST[$sampleField]));
 
         //$this->exitAfterHook();
     }
@@ -162,7 +162,7 @@ class SampleManagementModule extends AbstractExternalModule
                 $this->setProjectSetting($projectSetting, json_encode(array('project' => $invenProject->project_id, 'field' => $destField, 'record' => $destRecord, 'event' => $destEvent, 'instance' => $destInstance, 'value' => $assignValue, 'label' => $slotLabel)));
             }
         }
-        return $destRecord;
+        return [$destRecord,$currentStore];
     }
 
     function buildJavascript($project_id,$record,$event_id,$repeat_instance,$instrument,$view = "form") {

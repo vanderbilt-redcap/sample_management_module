@@ -211,7 +211,8 @@ if ($project_id != "" && is_numeric($project_id)) {
                 $slotField = $settings[$module::ASSIGN_CONTAIN];
                 $invenProject = new \Project($settings[$module::INVEN_PROJECT]);
 
-                $destRecord = $module->saveSample($project_id, $recordID, $event_id, $repeat_instance, $assignField, explode("_", $slotSetting), $record, $slotLabel);
+                list($destRecord,$currentStoreSetting) = $module->saveSample($project_id, $recordID, $event_id, $repeat_instance, $assignField, explode("_", $slotSetting), $record, $slotLabel);
+                $returnData['previous_slot'] = $currentStoreSetting['project']."_".$currentStoreSetting['record']."_".$currentStoreSetting['event']."_".$currentStoreSetting['instance'];
                 $saveData[0][$assignField] = $slotSetting;
                 $saveData[0][$slotField] = $destRecord;
                 $saveData[0][$project->table_pk] = $recordID;
@@ -279,7 +280,7 @@ if ($project_id != "" && is_numeric($project_id)) {
                 $slotField = $settings[$module::ASSIGN_CONTAIN];
                 $invenProject = new \Project($settings[$module::INVEN_PROJECT]);
 
-                $destRecord = $module->saveSample($project_id, $recordID, $destProject->firstEventId, "", $assignField, array(), $record);
+                list($destRecord,$currentStoreSetting) = $module->saveSample($project_id, $recordID, $destProject->firstEventId, "", $assignField, array(), $record);
                 $saveData[0][$assignField] = "";
                 $saveData[0][$slotField] = "";
                 $saveData[0][$destProject->table_pk] = $recordID;
