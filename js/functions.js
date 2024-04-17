@@ -164,7 +164,7 @@ function loadAllContainers(ajaxurl,project_id,table_id) {
     });
 }
 
-function loadContainer(ajaxurl,project_id,event_id,record,table_id,container = '') {
+function loadContainer(ajaxurl,project_id,event_id,record,table_id,parent_id = '') {
     $.ajax({
         url: ajaxurl,
         data: {
@@ -204,6 +204,10 @@ function loadContainer(ajaxurl,project_id,event_id,record,table_id,container = '
         }
         tableHTML += "</tr></table>";
         $('#' + table_id).html('').append(tableHTML);
+        //TODO This should really be recoded to only reset the slot having a sample removed at time of saveSample function instead of reloading the whole table.
+        if (parent_id != '') {
+            $('#' + parent_id).parent().nextAll().find('.barcode_text').first().focus();
+        }
     });
 }
 
@@ -249,14 +253,12 @@ function retrieveSampleInfo(ajaxurl,project_id,event_id,barcode,slot_id,slot_lab
                 let discreps = sampleData['discreps'];
                 for (const index in discreps) {
                     let discrepOption = discreps[index];
-                    console.log(discrepOption);
                     sampleTable += "<span><input id='sample_issue_"+index+"' type='checkbox' "+discrepOption['value']+" value='"+index+"' /><label for='sample_issue_"+index+"'>"+discrepOption['label']+"</label></span><br/>";
                 }
                 sampleTable += "</td></tr><tr><td colspan='2'><label for='sample_issue_other'>Other Notes</label><textarea id='sample_issue_other' name='sample_issue_other'>"+sampleData['discrep_other']+"</textarea></td></tr>";
                 sampleTable += "<tr><td colspan='2' style='text-align:center;'><input type='button' onclick='saveSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\"" + barcode + "\",\"" + parent_id + "\",\"" + slot_label + "\",\"sample_issue_\",\"container_select\");$(\"#sample_info_container\").css(\"display\",\"none\");' value='Save Sample' /></td></tr>";
-                $('#' + parent_id).parent().nextAll().find('.barcode_text').first().focus();;
                 //$('#' + parent_id).html("Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']+ "<br/><input value='Checkout' type='button' id='sample_checkout_" + slot_label + "' onclick='checkoutSample(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+barcode+"\",\""+slot_id+"\",\""+slot_label+"\",\""+input_next+"\");' />");
-                $('#' + parent_id).html("<span style='background-color: "+actual_back+"'>Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']+ "<br/><input value='Sample Info' type='button' id='sample_info_" + slot_label + "' onclick='retrieveSampleInfo(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+barcode+"\",\""+slot_id+"\",\""+slot_label+"\",\""+input_next+"\");' /></span>");
+                //$('#' + parent_id).html("<span style='background-color: "+actual_back+"'>Part. ID: " + sampleData['participant_id'] + "<br/>Samp. ID: " + sampleData['sample_id'] + "<br/>Sample Type: " + sampleData['planned_type'] + "<br/>Collect Date: " + sampleData['collect_date']+ "<br/><input value='Sample Info' type='button' id='sample_info_" + slot_label + "' onclick='retrieveSampleInfo(\""+ajaxurl+"\",\""+project_id+"\",\""+event_id+"\",\""+barcode+"\",\""+slot_id+"\",\""+slot_label+"\",\""+input_next+"\");' /></span>");
 
                 sampleTable += "</table>";
             }
@@ -272,7 +274,7 @@ function retrieveSampleInfo(ajaxurl,project_id,event_id,barcode,slot_id,slot_lab
 function saveSample(ajaxurl,project_id,event_id,barcode,slot_id,slot_label,issue_id_prefix,container_id) {
     let discrepData = [];
     let sample_cell_id = "sample_slot_" + slot_id;
-    let container = $('#' + container_id + ' option:selected').text();
+    let container = $('#' + container_id + ' option:selected');
     $("input[id^='" + issue_id_prefix + "']").each(function () {
         if ($(this).prop("checked")) {
             discrepData.push($(this).val());
@@ -296,17 +298,19 @@ function saveSample(ajaxurl,project_id,event_id,barcode,slot_id,slot_label,issue
         }).done(function (html) {
             //console.log(html);
             let result = JSON.parse(html);
-            console.log(result);
+            //console.log(result);
+            let parent_id = "sample_slot_"+slot_id;
+            loadContainer(ajaxurl, project_id, event_id, container.val(), 'container_table',parent_id);
             if (result['stored']) {
                 $('#sample_row_' + barcode).css('background-color', 'lightgreen').find('td:eq(1)').html('Stored');
-                $('#sample_row_' + barcode).find('td:eq(2)').html(container + '<br/>' + slot_label);
+                $('#sample_row_' + barcode).find('td:eq(2)').html(container.text() + '<br/>' + slot_label);
             } else {
                 $('#sample_row_' + barcode).css('background-color', 'lightgreen').find('td:eq(1)').html('');
                 $('#sample_row_' + barcode).find('td:eq(2)').html('');
             }
             if (result['discreps'] != "") {
                 $('#sample_row_' + barcode).css('background-color', 'pink').find('td:eq(1)').html(result['discreps']);
-                $('#sample_row_' + barcode).find('td:eq(2)').html(container + '<br/>' + slot_label);
+                $('#sample_row_' + barcode).find('td:eq(2)').html(container.text() + '<br/>' + slot_label);
             }
         });
     }
