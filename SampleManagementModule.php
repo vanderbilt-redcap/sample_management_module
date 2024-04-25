@@ -254,7 +254,7 @@ class SampleManagementModule extends AbstractExternalModule
                         }
 
                         $javaScript .= "$('#".$fieldName."-tr').find('".$valueTD."').find('input:first').remove();
-                        //console.log('Test '+html);
+                        //console.log(html);
                         let slotList = JSON.parse(html);";
                         if (!empty($value) && $label != "") {
                             $javaScript .= "slotList['options'] = '<option value=\"".implode("_",$value)."\">$label</option>'+slotList['options'];";

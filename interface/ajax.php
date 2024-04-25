@@ -53,7 +53,7 @@ if ($project_id != "" && is_numeric($project_id)) {
         foreach ($slotInfo as $info) {
             $availableSlots[$info['project_id']."_".$info['record']."_".$info['event']."_".$info['instance']] = $info['slot'];
         }
-        $slots['options'] = "";
+        $slots['options'] = "<option value=''>(Not Stored)</option>";
         $slots['inputs'] = "";
 
         foreach ($currentSlots as $fieldName => $slotSettings) {
