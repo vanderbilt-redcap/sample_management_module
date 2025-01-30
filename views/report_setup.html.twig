@@ -1,0 +1,22 @@
+{% extends "base.html.twig" %}
+
+{% block data_table %}
+    {% if report_data %}
+        <h2>Report Name: <input type="text" name="report_name" value="{{ report_data.name }}" /></h2>
+        <h2>Report Description:</h2>
+        <textarea name="report_descrip" rows="5" cols="100">{{ report_data.descrip }}</textarea>
+        <div class="container m-0">
+            <div class="row" style="text-align:center;">
+                <div class="col-md-4 border">
+                    <h3>Record Links</h3>
+                </div>
+                <div class="col-md-4 border">
+                    <h3>Report Columns</h3>
+                </div>
+                <div class="col-md-4 border">
+                    <h3>Filter Logic</h3>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

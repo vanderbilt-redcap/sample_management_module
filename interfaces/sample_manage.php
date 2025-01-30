@@ -6,4 +6,4 @@ $module = new \Vanderbilt\SampleManagementModule\SampleManagementModule($project
 
 $shippingData = array();
 $trackingNum = "";
-$ajaxUrl = $module->getUrl('interface/ajax.php');
+$ajaxUrl = $module->getUrl('interfaces/ajax.php');

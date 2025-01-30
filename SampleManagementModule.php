@@ -5,6 +5,7 @@ namespace Vanderbilt\SampleManagementModule;
 use ExternalModules\AbstractExternalModule;
 use ExternalModules\ExternalModules;
 use REDCap;
+use Twig\TwigFunction;
 use Vanderbilt\REDCap\Classes\MyCap\Api\DB\Project;
 
 class SampleManagementModule extends AbstractExternalModule
@@ -202,7 +203,7 @@ class SampleManagementModule extends AbstractExternalModule
             $currentSlots[$settings[self::ASSIGN_FIELD]] = json_decode($currentSetting, true);
         }
 
-        $ajaxUrl = $this->getUrl('interface/ajax.php');
+        $ajaxUrl = $this->getUrl('interfaces/ajax.php');
         $javaScript = "<script>
         function getSampleContainers(project_id,record,event,instance) {
             $.ajax({
@@ -560,4 +561,36 @@ class SampleManagementModule extends AbstractExternalModule
     function getDataTable($project_id){
         return method_exists('\REDCap', 'getDataTable') ? \REDCap::getDataTable($project_id) : "redcap_data";
     }
+
+	public function loadTwigExtensions(): void {
+		$this->initializeTwig();
+		$this->getTwig()->addFunction(new TwigFunction('dataReport', function ($report_index, $project_id) {
+			$urlStr = $this->getUrl('data_report.php') . '?report_index=' . $report_index . "&pid=" . $project_id;
+			return $urlStr;
+		}));
+
+		$this->getTwig()->addFunction(new TwigFunction('loadJSBS', function () {
+			return $this->framework->loadBootstrap() . $this->framework->loadREDCapJS();
+		}));
+	}
+
+	public function loadDataReportTwig($project_id, $report_index) {
+		$reportList = $this->getAllReportNames($project_id);
+		$reportData = $this->buildReportTable($project_id, $report_index);
+
+		return $this->getTwig()->render('data_report.html.twig', [
+			'report_list' => $reportList,
+			'report_data' => $reportData
+		]);
+	}
+
+	public function loadReportSetupTwig($project_id, $report_index) {
+		//$reportList = $this->getAllReportNames($project_id);
+		//$reportData = $this->buildReportTable($project_id, $report_index);
+
+		return $this->getTwig()->render('report_setup.html.twig', [
+			'report_list' => ["Test Report"],
+			'report_data' => ["testing"]
+		]);
+	}
 }

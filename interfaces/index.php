@@ -33,12 +33,12 @@ if ($project_id != "" && is_numeric($project_id)) {
         $destResult = \Records::saveData($invenProject->project_id, 'json', json_encode($fullDataImport));
     }
 
-    echo "<form method='POST' action='".$module->getUrl('interface/index.php')."' enctype='multipart/form-data'>
+    echo "<form method='POST' action='".$module->getUrl('interfaces/index.php')."' enctype='multipart/form-data'>
 <input type='file' name='section_to_insert' id='section_to_insert' />
 <input type='submit' name='submit_inventory' value='Submit' />
     </form>";
 
-    /*$fp = fopen($module->getModulePath().'interface/inventory.csv','w');
+    /*$fp = fopen($module->getModulePath().'interfaces/inventory.csv','w');
 
         $allRows[] = array('record_id', 'redcap_repeat_instrument', 'redcap_repeat_instance', 'secondary_name', 'position', 'holds_samples', 'form_1_complete');
         $record = 1;
