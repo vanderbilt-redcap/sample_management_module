@@ -1,14 +1,14 @@
 <link rel="stylesheet" type="text/css" href="{{ getUrl('css/base.css') }}">
 
 {% block report_select %}
-        <form method="post" action="{{ getUrl('interfaces/data_report.php') }}">
-            <select name="report_index">
-                {% for index,name in report_list %}
-                    <option value="{{ index }}">{{ name }}</option>
-                {% endfor %}
-            </select>
-            <input type="submit" value="Submit"/>
-        </form>
+    <form method="post" action="{{ getUrl('interfaces/data_report.php') }}">
+        <select name="report_index">
+            {% for index,name in report_list %}
+                <option value="{{ index }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Submit"/>
+    </form>
 {% endblock %}
 
 {% block data_table %}{% endblock %}
