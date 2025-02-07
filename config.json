@@ -42,11 +42,6 @@
       }
     ]
   },
-  "permissions": [
-    "redcap_data_entry_form",
-    "redcap_survey_page",
-    "redcap_save_record"
-  ],
   "no-auth-pages": [
   ],
   "system-settings": [

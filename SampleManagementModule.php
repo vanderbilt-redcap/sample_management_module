@@ -8,6 +8,8 @@ use REDCap;
 use Twig\TwigFunction;
 use Vanderbilt\REDCap\Classes\MyCap\Api\DB\Project;
 
+require_once "autoload.php";
+
 class SampleManagementModule extends AbstractExternalModule
 {
     const INVEN_PROJECT = "inven-project";
@@ -557,10 +559,38 @@ class SampleManagementModule extends AbstractExternalModule
         return $enumArray;
     }
 
+	function isSuperUser() {
+		return ((!defined("SUPER_USER") || SUPER_USER) && !\UserRights::isImpersonatingUser());
+	}
+
     # Function to determine the 'redcap_data' DB table for a REDCap project, in the case that this is running on a version of REDCap that uses more than the single DB table.
     function getDataTable($project_id){
         return method_exists('\REDCap', 'getDataTable') ? \REDCap::getDataTable($project_id) : "redcap_data";
     }
+
+	function getUserProjectIDs() {
+		$rights = \UserRights::getPrivileges(null,($this->isSuperUser() ? null : USERID));
+		$projectIDs = array_keys($rights);
+
+		sort($projectIDs);
+		return $projectIDs;
+	}
+
+	function getProjectNames($projectIDs) {
+		$returnArray = array();
+		if ($projectIDs === array_filter($projectIDs,'is_int')) {
+			$sql = "SELECT project_id,app_title
+						FROM redcap_projects
+						WHERE project_id IN (".implode(",",$projectIDs).")";
+			$result = $this->query($sql,[]);
+
+			while ($row = $result->fetch_assoc()) {
+				$returnArray[$row['project_id']] = $row['app_title'];
+			}
+		}
+
+		return $returnArray;
+	}
 
 	public function loadTwigExtensions(): void {
 		$this->initializeTwig();
@@ -581,16 +611,6 @@ class SampleManagementModule extends AbstractExternalModule
 		return $this->getTwig()->render('data_report.html.twig', [
 			'report_list' => $reportList,
 			'report_data' => $reportData
-		]);
-	}
-
-	public function loadReportSetupTwig($project_id, $report_index) {
-		//$reportList = $this->getAllReportNames($project_id);
-		//$reportData = $this->buildReportTable($project_id, $report_index);
-
-		return $this->getTwig()->render('report_setup.html.twig', [
-			'report_list' => ["Test Report"],
-			'report_data' => ["testing"]
 		]);
 	}
 }

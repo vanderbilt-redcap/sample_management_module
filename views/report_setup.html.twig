@@ -5,10 +5,16 @@
         <h2>Report Name: <input type="text" name="report_name" value="{{ report_data.name }}" /></h2>
         <h2>Report Description:</h2>
         <textarea name="report_descrip" rows="5" cols="100">{{ report_data.descrip }}</textarea>
+        <div class="col-md-2"><input type="submit" name="submit_report" value="Submit Report" /></div>
         <div class="container m-0">
             <div class="row" style="text-align:center;">
                 <div class="col-md-4 border">
                     <h3>Record Links</h3>
+                    <select name="link_project_list" style="width:100%;">
+                        {% for id,name in project_list %}
+                            <option value="{{ id }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-md-4 border">
                     <h3>Report Columns</h3>
