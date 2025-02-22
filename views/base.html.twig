@@ -1,14 +1,16 @@
 <link rel="stylesheet" type="text/css" href="{{ getUrl('css/base.css') }}">
-
-{% block report_select %}
-    <form method="post" action="{{ getUrl('interfaces/data_report.php') }}">
+{% set max_index = 0 %}
+<form method="post" action="{{ getUrl('interfaces/report_setup.php') }}">
         <select name="report_index">
+            <option value=""></option>
             {% for index,name in report_list %}
-                <option value="{{ index }}">{{ name }}</option>
+                <option value="{{ index }}" {% if report_data.id == index %}selected{% endif %}>{{ name }}</option>
+                {% set max_index = max_index + 1 %}
             {% endfor %}
+            <option value="{{ max_index }}" {% if report_data.id == max_index %}selected{% endif %}>Create New Report</option>
         </select>
-        <input type="submit" value="Submit"/>
-    </form>
-{% endblock %}
+        <input type="submit" name="report_select" value="Load Report"/>
 
-{% block data_table %}{% endblock %}
+    {% block data_table %}{% endblock %}
+
+</form>

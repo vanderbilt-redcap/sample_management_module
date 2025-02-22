@@ -1,23 +1,26 @@
 <?php
 
-$project_id = \ExternalModules\ExternalModules::escape($_POST['project_id']);
-$record = \ExternalModules\ExternalModules::escape($_POST['record']);
-$process = \ExternalModules\ExternalModules::escape($_POST['process']);
+use ExternalModules\ExternalModules;
+use Vanderbilt\SampleManagementModule\SampleManagementModule;
+
+$project_id = ExternalModules::escape($_POST['project_id']);
+$record = ExternalModules::escape($_POST['record']);
+$process = ExternalModules::escape($_POST['process']);
 $tableHTML = "";
 
 if ($project_id != "" && is_numeric($project_id)) {
-    $module = new \Vanderbilt\SampleManagementModule\SampleManagementModule($project_id);
-    $event_id = \ExternalModules\ExternalModules::escape($_POST['event_id']);
-    $repeat_instance = \ExternalModules\ExternalModules::escape($_POST['repeat_instance']);
+    $module = new SampleManagementModule($project_id);
+    $event_id = ExternalModules::escape($_POST['event_id']);
+    $repeat_instance = ExternalModules::escape($_POST['repeat_instance']);
     $currentValues = array();
 
     $settings = $module->getModuleSettings($project_id);
-    $project = new \Project($project_id);
+    $project = new Project($project_id);
 
     if ($process == "get_shipping_ids") {
         $trackList = array();
         $trackField = $settings[$module::LOOKUP_FIELD];
-        $trackData = json_decode(\REDCap::getData(
+        $trackData = json_decode(REDCap::getData(
             array(
                 'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => '['.$trackField.'] != ""',
                 'fields'=>array($project->table_pk,$trackField), 'exportAsLabels' => true
@@ -48,7 +51,7 @@ if ($project_id != "" && is_numeric($project_id)) {
     }
     elseif ($process == "get_slot_options") {
         $availableSlots = array();
-        $currentSlots = json_decode(\ExternalModules\ExternalModules::escape($_POST['currentSlots']),true);
+        $currentSlots = json_decode(ExternalModules::escape($_POST['currentSlots']),true);
         $slotInfo = $module->getContainerSlots(array($record),true);
         foreach ($slotInfo as $info) {
             $availableSlots[$info['project_id']."_".$info['record']."_".$info['event']."_".$info['instance']] = $info['slot'];
@@ -76,13 +79,13 @@ if ($project_id != "" && is_numeric($project_id)) {
     elseif ($process == "sample_list" && isset($_POST['track_num'])) {
         $destProject = new Project($project_id);
         $destMeta = $destProject->metadata;
-        $trackNum = \ExternalModules\ExternalModules::escape($_POST['track_num']);
+        $trackNum = ExternalModules::escape($_POST['track_num']);
         $trackField = $settings[$module::LOOKUP_FIELD];
         $manifestFields = $settings[$module::MANIFEST_FIELDS] ?? array();
         $sampleList = array();
 
         if ($trackNum != "" && $trackField != "") {
-            $sampleData = json_decode(\REDCap::getData(
+            $sampleData = json_decode(REDCap::getData(
                 array(
                     'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[".$trackField."] = '".$trackNum."'",
                     'fields'=>array_merge($manifestFields,array($project->table_pk,$trackField,$settings[$module::DISCREP_OTHER],$settings[$module::ASSIGN_FIELD],$settings[$module::DISCREP_FIELD])), 'exportAsLabels' => true
@@ -134,7 +137,7 @@ if ($project_id != "" && is_numeric($project_id)) {
         $tableHTML = json_encode($sampleList);
     }
     elseif ($process == "load_sample") {
-        $sampleData = json_decode(\REDCap::getData(
+        $sampleData = json_decode(REDCap::getData(
             array(
                 'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[" . $settings[$module::SAMPLE_ID] . "] = '" . $record . "'",
                 'fields' => array($project->table_pk, $settings[$module::SAMPLE_ID], $settings[$module::SAMPLE_FIELD], $settings[$module::COLLECT_DATE], $settings[$module::PLANNED_TYPE],
@@ -166,10 +169,10 @@ if ($project_id != "" && is_numeric($project_id)) {
         $tableHTML = json_encode($sampleList);
     }
     elseif ($process == "save_sample") {
-        $discrepChecks = \ExternalModules\ExternalModules::escape($_POST['discreps']);
-        $discrepOther = \ExternalModules\ExternalModules::escape($_POST['discrep_other']);
-        $slotSetting = \ExternalModules\ExternalModules::escape($_POST['slot_setting']);
-        $slotLabel = \ExternalModules\ExternalModules::escape($_POST['slot_label']);
+        $discrepChecks = ExternalModules::escape($_POST['discreps']);
+        $discrepOther = ExternalModules::escape($_POST['discrep_other']);
+        $slotSetting = ExternalModules::escape($_POST['slot_setting']);
+        $slotLabel = ExternalModules::escape($_POST['slot_label']);
         $returnData = array("stored"=>false,"discreps"=>"");
 
         $recordID = $module->getRecordByField($project_id,$settings[$module::SAMPLE_ID],$record);
@@ -209,7 +212,7 @@ if ($project_id != "" && is_numeric($project_id)) {
             if (isset($settings[$module::ASSIGN_FIELD]) && isset($settings[$module::SAMPLE_ID]) && isset($settings[$module::ASSIGN_CONTAIN])) {
                 $assignField = $settings[$module::ASSIGN_FIELD];
                 $slotField = $settings[$module::ASSIGN_CONTAIN];
-                $invenProject = new \Project($settings[$module::INVEN_PROJECT]);
+                $invenProject = new Project($settings[$module::INVEN_PROJECT]);
 
                 list($destRecord,$currentStoreSetting) = $module->saveSample($project_id, $recordID, $event_id, $repeat_instance, $assignField, explode("_", $slotSetting), $record, $slotLabel);
                 $returnData['previous_slot'] = $currentStoreSetting['project']."_".$currentStoreSetting['record']."_".$currentStoreSetting['event']."_".$currentStoreSetting['instance'];
@@ -234,13 +237,13 @@ if ($project_id != "" && is_numeric($project_id)) {
         $tableHTML = json_encode($returnData);
     }
     elseif ($process == "shipping_info") {
-        $trackNum = \ExternalModules\ExternalModules::escape($_POST['track_num']);
+        $trackNum = ExternalModules::escape($_POST['track_num']);
         $trackField = $settings[$module::LOOKUP_FIELD];
 
         $shippingInfo = array();
 
         if ($trackNum != "" && $trackField != "") {
-            $shipData = json_decode(\REDCap::getData(
+            $shipData = json_decode(REDCap::getData(
                 array(
                     'return_format' => 'json', 'project_id' => $project_id, 'filterLogic' => "[".$trackField."] = '".$trackNum."'",
                     'fields'=>array($settings[$module::SHIP_DATE],$settings[$module::SHIPPED_BY]), 'exportAsLabels' => true,
@@ -264,7 +267,7 @@ if ($project_id != "" && is_numeric($project_id)) {
         $tableHTML = json_encode($shippingInfo);
     }
     elseif ($process == "checkout_sample") {
-        $slotSetting = \ExternalModules\ExternalModules::escape($_POST['slot_setting']);
+        $slotSetting = ExternalModules::escape($_POST['slot_setting']);
         $slotOptions = explode("_",$slotSetting);
 
         $settings = $module->getModuleSettings($project_id);
@@ -278,7 +281,7 @@ if ($project_id != "" && is_numeric($project_id)) {
             if (isset($settings[$module::ASSIGN_FIELD]) && isset($settings[$module::SAMPLE_ID]) && isset($settings[$module::ASSIGN_CONTAIN])) {
                 $assignField = $settings[$module::ASSIGN_FIELD];
                 $slotField = $settings[$module::ASSIGN_CONTAIN];
-                $invenProject = new \Project($settings[$module::INVEN_PROJECT]);
+                $invenProject = new Project($settings[$module::INVEN_PROJECT]);
 
                 list($destRecord,$currentStoreSetting) = $module->saveSample($project_id, $recordID, $destProject->firstEventId, "", $assignField, array(), $record);
                 $saveData[0][$assignField] = "";

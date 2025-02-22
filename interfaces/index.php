@@ -1,16 +1,19 @@
 <?php
+
+use Vanderbilt\SampleManagementModule\SampleManagementModule;
+
 require_once APP_PATH_DOCROOT.'ProjectGeneral/header.php';
 
 $project_id = $_GET['pid'];
 
 if ($project_id != "" && is_numeric($project_id)) {
-    $module = new \Vanderbilt\SampleManagementModule\SampleManagementModule($project_id);
+    $module = new SampleManagementModule($project_id);
 
     if (is_array($_FILES['section_to_insert'])) {
         $tmp = $_FILES['section_to_insert']['tmp_name'];
 
         $settings = $module->getModuleSettings($project_id);
-        $invenProject = new \Project($settings[$module::INVEN_PROJECT]);
+        $invenProject = new Project($settings[$module::INVEN_PROJECT]);
         $fullDataImport = array();
 
         if (($handle = fopen($tmp, 'r')) !== false) {
@@ -30,7 +33,7 @@ if ($project_id != "" && is_numeric($project_id)) {
             }
             fclose($handle);
         }
-        $destResult = \Records::saveData($invenProject->project_id, 'json', json_encode($fullDataImport));
+        $destResult = Records::saveData($invenProject->project_id, 'json', json_encode($fullDataImport));
     }
 
     echo "<form method='POST' action='".$module->getUrl('interfaces/index.php')."' enctype='multipart/form-data'>

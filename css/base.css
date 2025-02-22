@@ -69,3 +69,7 @@ a.hyperlink_button {
     border-radius: 3px;
     text-decoration: none;
 }
+h3.report_section_hdr {
+    border-bottom: 1px black solid;
+    margin-bottom: 15px;
+}

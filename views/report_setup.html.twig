@@ -1,28 +1,83 @@
 {% extends "base.html.twig" %}
 
+{% set link_index = 0 %}
+{% set column_index = 0 %}
+{% set filter_index = 0 %}
+
 {% block data_table %}
     {% if report_data %}
         <h2>Report Name: <input type="text" name="report_name" value="{{ report_data.name }}" /></h2>
         <h2>Report Description:</h2>
         <textarea name="report_descrip" rows="5" cols="100">{{ report_data.descrip }}</textarea>
-        <div class="col-md-2"><input type="submit" name="submit_report" value="Submit Report" /></div>
+        <div class="col-md-2"><input type="submit" name="report_submit" value="Submit Report" /></div>
         <div class="container m-0">
             <div class="row" style="text-align:center;">
-                <div class="col-md-4 border">
-                    <h3>Record Links</h3>
-                    <select name="link_project_list" style="width:100%;">
-                        {% for id,name in project_list %}
-                            <option value="{{ id }}">{{ name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-4 border">
-                    <h3>Report Columns</h3>
-                </div>
-                <div class="col-md-4 border">
-                    <h3>Filter Logic</h3>
-                </div>
+                {% block report_links %}
+                    <div class="col-md-4 border">
+                        <h3 class="report_section_hdr">Record Links</h3>
+                        {{ _self.drawLinkBlock(report_data.links|length,project_list) }}
+                    </div>
+                {% endblock %}
+                {% block report_columns %}
+                    <div class="col-md-4 border">
+                        <h3 class="report_section_hdr">Report Columns</h3>
+                        {{ _self.drawColumnBlock(report_data.info|length,project_list) }}
+                    </div>
+                {% endblock %}
+                {% block report_filters %}
+                    <div class="col-md-4 border">
+                        <h3 class="report_section_hdr">Filter Logic</h3>
+                        {{ _self.drawFilterBlock(report_data.filters|length,project_list) }}
+                    </div>
+                {% endblock %}
             </div>
         </div>
     {% endif %}
 {% endblock %}
+
+{% macro drawLinkBlock(index,project_list,first_project,first_field,second_project,second_field) %}
+    <div class="report_link_block">
+        <select name="first_link_project_list" id="first_link_project_list_{{ index }}" style="width:100%;"><option value=""></option>
+            {% for id,name in project_list %}
+                <option value="{{ id }}" {% if first_project != '' %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+        <select name="first_link_field_list" id="first_link_field_list_{{ index }}">
+        </select>
+        <select name="second_link_project_list" id="second_link_project_list_{{ index }}" style="width:100%;"><option value=""></option>
+            {% for id,name in project_list %}
+                <option value="{{ id }}" {% if second_project != '' %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+        <select name="second_link_field_list" id="second_link_field_list_{{ index }}">
+        </select>
+    </div>
+{% endmacro %}
+
+{% macro drawColumnBlock(index,project_list,chosen_project,chosen_field) %}
+    <div class="report_column_block">
+        <select name="column_project_list" id="column_project_list_{{ index }}" style="width:100%;"><option value=""></option>
+            {% for id,name in project_list %}
+                <option value="{{ id }}" {% if chosen_project != '' %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+        <select name="column_field_list" id="column_field_list_{{ index }}">
+        </select>
+    </div>
+{% endmacro %}
+
+{% macro drawFilterBlock(index,project_list,operator_list,chosen_project,chosen_field,chosen_operator,chosen_value) %}
+    <div class="report_filter_block">
+        <select name="filter_project_list" id="filter_project_list_{{ index }}" style="width:100%;"><option value=""></option>
+            {% for id,name in project_list %}
+                <option value="{{ id }}" {% if chosen_project != '' %}selected{% endif %}>{{ name }}</option>
+            {% endfor %}
+        </select>
+        <select name="filter_field_list" id="filter_field_list_{{ index }}">
+        </select>
+        <select name="filter_operator_list" id="filter_operator_list_{{ index }}">
+        </select>
+        <select name="filter_value_list" id="filter_value_list_{{ index }}">
+        </select>
+    </div>
+{% endmacro %}
