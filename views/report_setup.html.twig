@@ -13,20 +13,20 @@
         <div class="container m-0">
             <div class="row" style="text-align:center;">
                 {% block report_links %}
-                    <div class="col-md-4 border">
-                        <h3 class="report_section_hdr">Record Links</h3>
+                    <div id="report_link_parent" class="col-md-4 border">
+                        <h3 class="report_section_hdr">Record Links <input type="button" value="+" onclick="newDivBlock('report_link_parent','report_link_block')" /></h3>
                         {{ _self.drawLinkBlock(report_data.links|length,project_list) }}
                     </div>
                 {% endblock %}
                 {% block report_columns %}
-                    <div class="col-md-4 border">
-                        <h3 class="report_section_hdr">Report Columns</h3>
+                    <div id="report_column_parent" class="col-md-4 border">
+                        <h3 class="report_section_hdr">Report Columns <input type="button" value="+" onclick="newDivBlock('report_column_parent','report_column_block')" /></h3>
                         {{ _self.drawColumnBlock(report_data.info|length,project_list) }}
                     </div>
                 {% endblock %}
                 {% block report_filters %}
-                    <div class="col-md-4 border">
-                        <h3 class="report_section_hdr">Filter Logic</h3>
+                    <div id="report_filter_parent" class="col-md-4 border">
+                        <h3 class="report_section_hdr">Filter Logic <input type="button" value="+" onclick="newDivBlock('report_filter_parent','report_filter_block')" /></h3>
                         {{ _self.drawFilterBlock(report_data.filters|length,project_list) }}
                     </div>
                 {% endblock %}
