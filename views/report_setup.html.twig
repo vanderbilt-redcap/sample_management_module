@@ -1,9 +1,5 @@
 {% extends "base.html.twig" %}
 
-{% set link_index = 0 %}
-{% set column_index = 0 %}
-{% set filter_index = 0 %}
-
 {% block data_table %}
     {% if report_data %}
         <h2>Report Name: <input type="text" name="report_name" value="{{ report_data.name }}" /></h2>
@@ -15,6 +11,11 @@
                 {% block report_links %}
                     <div id="report_link_parent" class="col-md-4 border">
                         <h3 class="report_section_hdr">Record Links <input type="button" value="+" onclick="newDivBlock('report_link_parent','report_link_block')" /></h3>
+                        {% for link_index,link in report_data.links %}
+                            {% if (link.first or link.second) %}
+                                {{ _self.drawLinkBlock(link_index,project_list,link.first.pid,link.first.field,link.second.pid,link.second.field) }}
+                            {% endif %}
+                        {% endfor %}
                         {{ _self.drawLinkBlock(report_data.links|length,project_list) }}
                     </div>
                 {% endblock %}
@@ -36,20 +37,35 @@
 {% endblock %}
 
 {% macro drawLinkBlock(index,project_list,first_project,first_field,second_project,second_field) %}
+    {% if (first_project != '') %}
+        {% set firstFieldList = getProjectFieldList(first_project) %}
+    {% endif %}
+    {% if (second_project != '') %}
+        {% set secondFieldList = getProjectFieldList(second_project) %}
+    {% endif %}
+
     <div class="report_link_block">
         <select name="first_link_project_list[]" id="first_link_project_list_{{ index }}" style="width:100%;" onchange="loadProjectInfo('first_field',{{ index }},this.value,'','','')"><option value=""></option>
             {% for id,name in project_list %}
-                <option value="{{ id }}" {% if first_project != '' %}selected{% endif %}>{{ name }}</option>
+                <option value="{{ id }}" {% if first_project == id %}selected{% endif %}>{{ name }}</option>
             {% endfor %}
         </select>
         <select name="first_link_field_list[]" id="first_link_field_list_{{ index }}">
+            <option value=""></option>
+            {% for field_name,field_info in firstFieldList %}
+                <option value="{{ field_name }}" {% if first_field == field_name %}selected{% endif %}>{{ field_name }}</option>
+            {% endfor %}
         </select>
-        <select name="second_link_project_list[]" id="second_link_project_list_{{ index }}" style="width:100%;"><option value=""></option>
+        <select name="second_link_project_list[]" id="second_link_project_list_{{ index }}" style="width:100%;" onchange="loadProjectInfo('second_field',{{ index }},this.value,'','','')"><option value=""></option>
             {% for id,name in project_list %}
-                <option value="{{ id }}" {% if second_project != '' %}selected{% endif %}>{{ name }}</option>
+                <option value="{{ id }}" {% if second_project == id %}selected{% endif %}>{{ name }}</option>
             {% endfor %}
         </select>
         <select name="second_link_field_list[]" id="second_link_field_list_{{ index }}">
+            <option value=""></option>
+            {% for field_name,field_info in secondFieldList %}
+                <option value="{{ field_name }}" {% if second_field == field_name %}selected{% endif %}>{{ field_name }}</option>
+            {% endfor %}
         </select>
     </div>
 {% endmacro %}

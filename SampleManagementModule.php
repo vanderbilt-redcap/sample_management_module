@@ -651,6 +651,12 @@ class SampleManagementModule extends AbstractExternalModule
         $this->getTwig()->addFunction(new TwigFunction('loadJSBS', function () {
             return $this->framework->loadBootstrap() . $this->framework->loadREDCapJS();
         }));
+
+        $this->getTwig()->addFunction(new TwigFunction('getProjectFieldList', function ($project_id) {
+            $project = new Project((int)$project_id);
+            $fieldList = array_keys($project->metadata ?? []);
+            return $this->loadFieldInfo(MetaData::getFields2($project->project_id, $fieldList));
+        }));
     }
 
     public function addJS(string $path): void

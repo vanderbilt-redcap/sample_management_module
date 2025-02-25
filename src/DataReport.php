@@ -42,7 +42,9 @@ class DataReport
         $linkInfo = json_decode($this->module->getProjectSetting(self::REPORT_LINK . '-' . $reportID, $this->module->getProjectId()), true);
         $descripInfo = json_decode($this->module->getProjectSetting(self::REPORT_DESCRIP . '-' . $reportID, $this->module->getProjectId()), true);
         $returnArray = array('id' => $reportID, 'name' => $this->reportList[$reportID] ?? '', 'descrip' => $descripInfo, 'info' => $reportInfo, 'filters' => $filterInfo, 'links' => $linkInfo);
-
+echo "<pre>";
+print_r($returnArray);
+echo "</pre>";
         return $returnArray;
     }
 
@@ -72,6 +74,17 @@ class DataReport
         }
         $this->module->setProjectSetting(self::REPORT_LIST, json_encode($this->reportList));
         $this->module->setprojectSetting(self::REPORT_DESCRIP.'-'.$reportID, json_encode($this->module->escape($reportSettings['report_descrip'])));
+        $reportLinks = [];
+        foreach ($reportSettings['first_link_project_list'] as $index => $firstProject) {
+            $firstProject = $this->module->escape($firstProject);
+            $secondProject = $this->module->escape($reportSettings['second_link_project_list'][$index]);
+            $firstField = $this->module->escape($reportSettings['first_link_field_list'][$index]);
+            $secondField = $this->module->escape($reportSettings['second_link_field_list'][$index]);
+            if (is_numeric($firstProject) && is_numeric($secondProject)) {
+                $reportLinks[$index] = ['first'=>['pid'=>$firstProject,'field'=>$firstField],'second'=>['pid'=>$secondProject,'field'=>$secondField]];
+            }
+        }
+        $this->module->setProjectSetting(self::REPORT_LINK.'-'.$reportID, json_encode($reportLinks));
 
         return $result;
     }
