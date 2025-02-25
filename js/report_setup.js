@@ -13,14 +13,30 @@ let reportOperators = {
         5: '<>'
 }
 
-window.loadProjectInfo = function(index, project_id, current_field, current_operator, current_value) {
+window.loadProjectInfo = function(type, index, project_id, current_field, current_operator, current_value) {
     let data = {
         'project_id': project_id,
         'current_field': current_field
     }
     module.ajax('project-info', data)
         .then(function (response) {
-            console.log(response);
+            let fieldList = JSON.parse(response);
+
+            switch (type) {
+                case 'first_field':
+                    addOptionsToSelect('first_link_field_list_' + index, fieldList, '');
+                    break;
+                case 'second_field':
+                    addOptionsToSelect('second_link_field_list_' + index, fieldList, '');
+                    break;
+                case 'column_field':
+                    break;
+                case 'filter_field':
+                    break;
+                default:
+                    console.log('Things went wrong');
+                    break;
+            }
         })
         .catch(function (err) {
             console.log(err);
@@ -46,3 +62,20 @@ window.newDivBlock = function(parent_div,block_class) {
     }
 }
 
+window.addOptionsToSelect = function(select_id,option_list,chosen_value) {
+    let selectElement = document.getElementById(select_id);
+    selectElement.options.length = 0;
+    selectElement.add(createSelectElement('',''));
+
+    for (let key in option_list) {
+        selectElement.add(createSelectElement(key,key,(key == chosen_value)));
+    }
+}
+
+window.createSelectElement = function(key,value,selected = false) {
+    let optionElement = document.createElement('option');
+    optionElement.value = key;
+    optionElement.text = value;
+    optionElement.selected = selected;
+    return optionElement;
+}
